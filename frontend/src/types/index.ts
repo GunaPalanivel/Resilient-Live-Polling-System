@@ -1,0 +1,81 @@
+export type PollStatus = 'active' | 'ended' | 'expired';
+
+export interface PollOption {
+  id: string;
+  text: string;
+}
+
+export interface Poll {
+  _id: string;
+  question: string;
+  options: PollOption[];
+  duration: number;
+  status: PollStatus;
+  startedAt: string;
+  endedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Vote {
+  _id: string;
+  pollId: string;
+  optionId: string;
+  studentSessionId: string;
+  studentName: string;
+  votedAt: string;
+}
+
+export interface VoteResult {
+  optionId: string;
+  optionText: string;
+  count: number;
+  percentage: number;
+}
+
+export interface DetailedVote {
+  studentName: string;
+  optionText: string;
+  votedAt: string;
+}
+
+export interface TeacherPollResults {
+  poll: Poll;
+  totalVotes: number;
+  results: VoteResult[];
+  detailedVotes: DetailedVote[];
+}
+
+export interface StudentPollResults {
+  poll: Poll;
+  totalVotes: number;
+  results: VoteResult[];
+  hasVoted: boolean;
+  userVote?: string;
+}
+
+export interface StudentSession {
+  _id: string;
+  sessionId: string;
+  pollId: string;
+  studentName: string;
+  isActive: boolean;
+  isBlocked: boolean;
+  lastHeartbeat: string;
+  createdAt: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  pollId: string;
+  studentSessionId: string;
+  studentName: string;
+  message: string;
+  timestamp: Date;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}

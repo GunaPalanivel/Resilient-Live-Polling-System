@@ -1,0 +1,100 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# TypeScript
+*.tsbuildinfo
+dist/
+build/
+
+# React/Frontend Build
+/frontend/build
+/frontend/dist
+/client/build
+/client/dist
+
+# Backend Build
+/backend/dist
+/server/dist
+
+# Testing
+/coverage
+*.lcov
+.nyc_output
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# Database
+*.sqlite
+*.sqlite3
+/data
+mongodb-data/
+postgres-data/
+
+# IDE
+.vscode/
+.vscode/*
+!.vscode/mcp.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.github/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.Spotlight-V100
+.Trashes
+
+# Misc
+.cache
+.temp
+.tmp
+*.pid
+*.seed
+*.pid.lock
+
+# Package Manager
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Deployment
+.vercel
+.netlify
+.firebase/
+.github/workflows/secrets/
+
+# Socket.io
+socket.io-client/
+
+# Production
+/build
+
+#README.md
+README.md

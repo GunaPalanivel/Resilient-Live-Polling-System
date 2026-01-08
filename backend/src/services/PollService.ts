@@ -1,0 +1,104 @@
+import { PollModel } from '../models/Poll';
+import { VoteModel } from '../models/Vote';
+import { Poll, PollOption } from '../types';
+import { v4 as uuidv4 } from 'uuid';
+
+export class PollService {
+  async createPoll(
+    question: string,
+    options: string[],
+    duration: number
+  ): Promise<Poll> {
+    // Check for existing active poll
+    const existingActivePoll = await PollModel.findOne({ status: 'active' });
+    if (existingActivePoll) {
+      throw new Error('ACTIVE_POLL_EXISTS');
+    }
+
+    // Create poll options with unique IDs
+    const pollOptions: PollOption[] = options.map((text) => ({
+      id: uuidv4(),
+      text: text.trim(),
+    }));
+
+    const poll = new PollModel({
+      question: question.trim(),
+      options: pollOptions,
+      duration,
+      status: 'active',
+      startedAt: new Date(),
+    });
+
+    await poll.save();
+    return poll.toObject();
+  }
+
+  async getCurrentPoll(): Promise<Poll | null> {
+    const poll = await PollModel.findOne({ status: 'active' });
+    return poll ? poll.toObject() : null;
+  }
+
+  async getPollById(pollId: string): Promise<Poll | null> {
+    const poll = await PollModel.findById(pollId);
+    return poll ? poll.toObject() : null;
+  }
+
+  async endPoll(pollId: string): Promise<Poll> {
+    const poll = await PollModel.findById(pollId);
+    
+    if (!poll) {
+      throw new Error('POLL_NOT_FOUND');
+    }
+
+    if (poll.status !== 'active') {
+      throw new Error('POLL_NOT_ACTIVE');
+    }
+
+    poll.status = 'ended';
+    poll.endedAt = new Date();
+    await poll.save();
+
+    return poll.toObject();
+  }
+
+  async expirePoll(pollId: string): Promise<Poll> {
+    const poll = await PollModel.findById(pollId);
+    
+    if (!poll) {
+      throw new Error('POLL_NOT_FOUND');
+    }
+
+    if (poll.status !== 'active') {
+      throw new Error('POLL_NOT_ACTIVE');
+    }
+
+    poll.status = 'expired';
+    poll.endedAt = new Date();
+    await poll.save();
+
+    return poll.toObject();
+  }
+
+  async getPollHistory(): Promise<Poll[]> {
+    const polls = await PollModel.find({ status: { $ne: 'active' } })
+      .sort({ createdAt: -1 })
+      .limit(50);
+    
+    return polls.map((poll) => poll.toObject());
+  }
+
+  async checkAndExpirePolls(): Promise<void> {
+    const activePolls = await PollModel.find({ status: 'active' });
+    
+    for (const poll of activePolls) {
+      const elapsed = Date.now() - poll.startedAt.getTime();
+      if (elapsed >= poll.duration * 1000) {
+        poll.status = 'expired';
+        poll.endedAt = new Date();
+        await poll.save();
+      }
+    }
+  }
+}
+
+export const pollService = new PollService();
