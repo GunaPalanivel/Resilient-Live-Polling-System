@@ -96,5 +96,6 @@ socket.io-client/
 # Production
 /build
 
-#README.md
+#docs
 README.md
+.docs
