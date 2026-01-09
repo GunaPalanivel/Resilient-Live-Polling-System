@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePoll } from '../../contexts/PollContext';
+import { useSocket } from '../../hooks/useSocket';
 import { BrandBadge } from '../ui/BrandBadge.tsx';
 import { ChatButton, ChatPopup } from '../ui/Chat.tsx';
 import toast from 'react-hot-toast';
@@ -39,6 +40,7 @@ export const TeacherDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { currentPoll, results, detailedVotes, createPoll, endPoll } =
     usePoll();
+  const { emit } = useSocket();
 
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState(['', '']);
@@ -46,6 +48,11 @@ export const TeacherDashboard: React.FC = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [showDurationMenu, setShowDurationMenu] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Join teacher room on mount
+  useEffect(() => {
+    emit('join:teacher');
+  }, [emit]);
 
   const durationOptions = useMemo(
     () => [
