@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BrandBadge } from '../ui/BrandBadge.tsx';
 import { PollAPI } from '../../services/pollService';
-import { Poll, VoteResult } from '../../types';
+import { Poll } from '../../types';
 import toast from 'react-hot-toast';
 
 // Back button component for consistent styling

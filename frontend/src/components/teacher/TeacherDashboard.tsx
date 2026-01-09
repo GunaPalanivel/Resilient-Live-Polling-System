@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePoll } from '../../contexts/PollContext';
 import { BrandBadge } from '../ui/BrandBadge.tsx';
@@ -6,37 +12,33 @@ import { ChatButton, ChatPopup } from '../ui/Chat.tsx';
 import toast from 'react-hot-toast';
 
 // Back button component for consistent styling
-const BackButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-  <button
-    onClick={onClick}
-    className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:bg-gray-100"
-    style={{ color: 'var(--color-text-secondary)' }}
-  >
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
+const BackButton: React.FC<{ onClick: () => void }> = React.memo(
+  ({ onClick }) => (
+    <button
+      onClick={onClick}
+      title="Go back"
+      className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:bg-gray-100"
+      style={{ color: 'var(--color-text-secondary)' }}
     >
-      <path d="M19 12H5M12 19l-7-7 7-7" />
-    </svg>
-    <span className="font-medium">Back</span>
-  </button>
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <path d="M19 12H5M12 19l-7-7 7-7" />
+      </svg>
+      <span className="font-medium">Back</span>
+    </button>
+  )
 );
 
 export const TeacherDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const {
-    currentPoll,
-    results,
-    detailedVotes,
-    totalVotes,
-    remainingSeconds,
-    createPoll,
-    endPoll,
-  } = usePoll();
+  const { currentPoll, results, detailedVotes, createPoll, endPoll } =
+    usePoll();
 
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState(['', '']);
@@ -45,14 +47,17 @@ export const TeacherDashboard: React.FC = () => {
   const [showDurationMenu, setShowDurationMenu] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const durationOptions = [
-    { value: 30, label: '30 seconds' },
-    { value: 60, label: '60 seconds' },
-    { value: 90, label: '90 seconds' },
-    { value: 120, label: '2 minutes' },
-    { value: 180, label: '3 minutes' },
-    { value: 300, label: '5 minutes' },
-  ];
+  const durationOptions = useMemo(
+    () => [
+      { value: 30, label: '30 seconds' },
+      { value: 60, label: '60 seconds' },
+      { value: 90, label: '90 seconds' },
+      { value: 120, label: '2 minutes' },
+      { value: 180, label: '3 minutes' },
+      { value: 300, label: '5 minutes' },
+    ],
+    []
+  );
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -74,25 +79,21 @@ export const TeacherDashboard: React.FC = () => {
     };
   }, [showDurationMenu]);
 
-  const handleAddOption = () => {
+  const handleAddOption = useCallback(() => {
     if (options.length < 10) {
       setOptions([...options, '']);
     }
-  };
+  }, [options]);
 
-  const handleRemoveOption = (index: number) => {
-    if (options.length > 2) {
-      setOptions(options.filter((_, i) => i !== index));
-    }
-  };
+  const handleOptionChange = useCallback((index: number, value: string) => {
+    setOptions((prev) => {
+      const newOptions = [...prev];
+      newOptions[index] = value;
+      return newOptions;
+    });
+  }, []);
 
-  const handleOptionChange = (index: number, value: string) => {
-    const newOptions = [...options];
-    newOptions[index] = value;
-    setOptions(newOptions);
-  };
-
-  const handleCreatePoll = () => {
+  const handleCreatePoll = useCallback(() => {
     if (!question.trim()) {
       toast.error('Please enter a question');
       return;
@@ -112,13 +113,7 @@ export const TeacherDashboard: React.FC = () => {
     setQuestion('');
     setOptions(['', '']);
     setDuration(60);
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  };
+  }, [question, options, duration, createPoll]);
 
   // Create Poll Screen (Figma Match + Responsive)
   if (!currentPoll || currentPoll.status !== 'active') {

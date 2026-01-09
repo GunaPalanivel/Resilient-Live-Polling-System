@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { TeacherDashboard } from '../TeacherDashboard';
-import { PollProvider } from '../../../contexts/PollContext';
-import { SocketProvider } from '../../../contexts/SocketContext';
 
 // Mock the hooks and contexts
 const mockCreatePoll = vi.fn();

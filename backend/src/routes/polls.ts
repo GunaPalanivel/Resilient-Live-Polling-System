@@ -43,7 +43,7 @@ router.post('/', async (req, res, next) => {
 });
 
 // Get current active poll
-router.get('/current', async (req, res, next) => {
+router.get('/current', async (_req, res, next) => {
   try {
     const poll = await pollService.getCurrentPoll();
 
@@ -57,7 +57,7 @@ router.get('/current', async (req, res, next) => {
 });
 
 // Get poll history (teacher only)
-router.get('/history', async (req, res, next) => {
+router.get('/history', async (_req, res, next) => {
   try {
     const polls = await pollService.getPollHistory();
 
@@ -143,7 +143,7 @@ router.get('/:pollId/results', async (req, res, next) => {
 });
 
 // Admin: Clear all active polls (development only)
-router.post('/admin/clear-active', async (req, res, next) => {
+router.post('/admin/clear-active', async (_req, res, next) => {
   try {
     // In development, allow clearing active polls
     if (process.env.NODE_ENV === 'production') {

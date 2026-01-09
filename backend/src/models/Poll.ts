@@ -76,4 +76,9 @@ PollSchema.virtual('remainingSeconds').get(function () {
   return Math.max(0, remaining);
 });
 
+// Indexes for performance optimization
+PollSchema.index({ status: 1, startedAt: -1 }); // Query active poll fast
+PollSchema.index({ createdAt: -1 }); // Poll history queries
+PollSchema.index({ status: 1, createdAt: -1 }); // Compound index for filtering by status and sorting
+
 export const PollModel = mongoose.model<PollDocument>('Poll', PollSchema);

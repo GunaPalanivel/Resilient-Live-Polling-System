@@ -79,7 +79,7 @@ router.post('/restore', async (req, res) => {
     res.json({ success: true, data: session });
   } catch (error) {
     logger.error('Error restoring session:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to restore session',
     });

@@ -17,7 +17,7 @@ export const validateStudent = async (
 
   try {
     const isBlocked = await studentService.isStudentBlocked(studentSessionId);
-    
+
     if (isBlocked) {
       return res.status(403).json({
         success: false,

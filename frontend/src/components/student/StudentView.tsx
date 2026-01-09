@@ -8,8 +8,8 @@ import { BrandBadge } from '../ui/BrandBadge.tsx';
 import { ChatButton, ChatPopup } from '../ui/Chat.tsx';
 import toast from 'react-hot-toast';
 
-// Back button component for consistent styling
-const BackButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+// Memoized Back button component for consistent styling
+const BackButton = React.memo<{ onClick: () => void }>(({ onClick }) => (
   <button
     onClick={onClick}
     className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:bg-gray-100"
@@ -27,12 +27,13 @@ const BackButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
     </svg>
     <span className="font-medium">Back</span>
   </button>
-);
+));
+BackButton.displayName = 'BackButton';
 
 export const StudentView: React.FC = () => {
   const navigate = useNavigate();
   const { studentName, studentSessionId, isAuthenticated, login } = useAuth();
-  const { currentPoll, results, totalVotes, remainingSeconds } = usePoll();
+  const { currentPoll, results, remainingSeconds } = usePoll();
   const { emit } = useSocket();
 
   const [name, setName] = useState('');
@@ -97,13 +98,16 @@ export const StudentView: React.FC = () => {
       sessionStorage.setItem('hasVoted_' + currentPoll._id, 'true');
       sessionStorage.setItem('votedOption_' + currentPoll._id, optionId);
       toast.success('Vote submitted!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       setSelectedOption(null);
       setHasVoted(previousVotedState);
 
+      const axiosError = error as {
+        response?: { data?: { error?: string }; status?: number };
+      };
       const errorMessage =
-        error.response?.data?.error || 'Failed to submit vote';
-      if (error.response?.status === 409) {
+        axiosError.response?.data?.error || 'Failed to submit vote';
+      if (axiosError.response?.status === 409) {
         toast.error('Vote already submitted!');
       } else {
         toast.error(errorMessage);

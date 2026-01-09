@@ -1,10 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { StudentView } from '../StudentView';
-import { AuthProvider } from '../../../contexts/AuthContext';
-import { PollProvider } from '../../../contexts/PollContext';
-import { SocketProvider } from '../../../contexts/SocketContext';
 
 // Mock the hooks and contexts
 const mockLogin = vi.fn();

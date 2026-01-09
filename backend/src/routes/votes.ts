@@ -29,7 +29,7 @@ router.post('/', validateStudent, async (req, res, next) => {
       data: vote,
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
