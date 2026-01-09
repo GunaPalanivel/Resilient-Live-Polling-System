@@ -5,3 +5,5 @@ export { Input } from './Input';
 export { Modal } from './Modal';
 export { Toast } from './Toast';
 export { Loading } from './Loading';
+export { BrandBadge } from './BrandBadge';
+export { ChatButton, ChatPopup } from './Chat';

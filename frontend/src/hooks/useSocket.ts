@@ -9,8 +9,15 @@ export const useSocket = () => {
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const errorHandlerRef = useRef<((error: any) => void) | null>(null);
+  const isInitializedRef = useRef(false);
 
   useEffect(() => {
+    // Prevent double-initialization in React.StrictMode
+    if (isInitializedRef.current) {
+      return;
+    }
+    isInitializedRef.current = true;
+
     const sessionId = SessionService.getSessionId();
 
     socketRef.current = io(WS_URL, {
