@@ -74,6 +74,7 @@ export const PollProvider: React.FC<{ children: React.ReactNode }> = ({
       detailedVotes: DetailedVote[];
       totalVotes: number;
     }) => {
+      console.log('[PollContext] Teacher vote update received:', data);
       setResults(data.results);
       setDetailedVotes(data.detailedVotes);
       setTotalVotes(data.totalVotes);

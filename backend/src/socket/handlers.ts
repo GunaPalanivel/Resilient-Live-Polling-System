@@ -121,6 +121,7 @@ export const setupSocketHandlers = (io: Server) => {
     // Poll end
     socket.on('poll:end', async (data: { pollId: string }) => {
       try {
+        logger.info(`Attempting to end poll: ${data.pollId}`);
         const poll = await pollService.endPoll(data.pollId);
 
         // Broadcast to all clients
@@ -132,7 +133,12 @@ export const setupSocketHandlers = (io: Server) => {
         logger.info(`Poll ended: ${data.pollId}`);
       } catch (error) {
         logger.error('Error ending poll:', error);
-        socket.emit('error', { message: 'Failed to end poll' });
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to end poll';
+        logger.error(
+          `Poll end error details: ${errorMessage}, pollId: ${data.pollId}`
+        );
+        socket.emit('error', { message: errorMessage });
       }
     });
 

@@ -58,8 +58,14 @@ export class PollService {
       throw new Error('POLL_NOT_FOUND');
     }
 
-    if (poll.status !== 'active') {
-      throw new Error('POLL_NOT_ACTIVE');
+    // Allow ending if already expired (timer ran out)
+    if (poll.status !== 'active' && poll.status !== 'expired') {
+      throw new Error('POLL_ALREADY_ENDED');
+    }
+
+    // If already expired, just return it as-is
+    if (poll.status === 'expired') {
+      return { ...poll.toObject(), _id: poll._id.toString() } as Poll;
     }
 
     poll.status = 'ended';
