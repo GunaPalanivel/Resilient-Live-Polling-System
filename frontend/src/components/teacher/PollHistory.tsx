@@ -141,7 +141,9 @@ export const PollHistory: React.FC = () => {
                           <div className="flex items-center gap-3">
                             <div
                               className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold"
-                              style={{ backgroundColor: 'var(--color-primary)' }}
+                              style={{
+                                backgroundColor: 'var(--color-primary)',
+                              }}
                             >
                               {index + 1}
                             </div>
