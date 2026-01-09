@@ -1,10 +1,33 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BrandBadge } from '../ui/BrandBadge.tsx';
 import { PollAPI } from '../../services/pollService';
 import { Poll, VoteResult } from '../../types';
 import toast from 'react-hot-toast';
 
+// Back button component for consistent styling
+const BackButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+  <button
+    onClick={onClick}
+    className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:bg-gray-100"
+    style={{ color: 'var(--color-text-secondary)' }}
+  >
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M19 12H5M12 19l-7-7 7-7" />
+    </svg>
+    <span className="font-medium">Back</span>
+  </button>
+);
+
 export const PollHistory: React.FC = () => {
+  const navigate = useNavigate();
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,7 +69,10 @@ export const PollHistory: React.FC = () => {
   return (
     <div className="min-h-screen bg-white p-8">
       <div className="max-w-6xl mx-auto">
-        <BrandBadge className="mb-8" />
+        <div className="flex justify-between items-center mb-8">
+          <BackButton onClick={() => navigate('/teacher')} />
+          <BrandBadge />
+        </div>
 
         <h1
           className="text-4xl font-bold mb-12"
@@ -85,11 +111,12 @@ export const PollHistory: React.FC = () => {
                 <div
                   className="rounded-xl p-4 mb-6"
                   style={{
-                    backgroundColor: 'var(--color-gray-700)',
-                    color: 'white',
+                    backgroundColor: 'var(--color-gray-900)',
                   }}
                 >
-                  <h3 className="text-lg font-medium">{poll.question}</h3>
+                  <h3 className="text-lg font-medium text-white">
+                    {poll.question}
+                  </h3>
                 </div>
 
                 {/* Results - Note: Real results would come from API */}

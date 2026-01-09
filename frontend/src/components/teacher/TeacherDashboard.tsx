@@ -5,6 +5,27 @@ import { BrandBadge } from '../ui/BrandBadge.tsx';
 import { ChatButton, ChatPopup } from '../ui/Chat.tsx';
 import toast from 'react-hot-toast';
 
+// Back button component for consistent styling
+const BackButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+  <button
+    onClick={onClick}
+    className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:bg-gray-100"
+    style={{ color: 'var(--color-text-secondary)' }}
+  >
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M19 12H5M12 19l-7-7 7-7" />
+    </svg>
+    <span className="font-medium">Back</span>
+  </button>
+);
+
 export const TeacherDashboard: React.FC = () => {
   const navigate = useNavigate();
   const {
@@ -97,36 +118,42 @@ export const TeacherDashboard: React.FC = () => {
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  // Create Poll Screen (Figma Match)
+  // Create Poll Screen (Figma Match + Responsive)
   if (!currentPoll || currentPoll.status !== 'active') {
     return (
-      <div className="min-h-screen bg-white p-8">
-        <BrandBadge className="mb-8" />
+      <div className="min-h-screen bg-white p-3 sm:p-4 md:p-6 lg:p-8">
+        <div className="flex justify-between items-center mb-4">
+          <BackButton onClick={() => navigate('/')} />
+          <BrandBadge />
+        </div>
 
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto px-2 sm:px-4">
           <h2
-            className="text-3xl font-bold mb-3"
+            className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3"
             style={{ color: 'var(--color-text-primary)' }}
           >
             Let's Get Started
           </h2>
 
-          <p className="mb-8" style={{ color: 'var(--color-text-secondary)' }}>
+          <p
+            className="mb-6 md:mb-8 text-sm sm:text-base"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
             you'll have the ability to create and manage polls, ask questions,
             and monitor your students' responses in real-time.
           </p>
 
           <div
-            className="bg-white rounded-2xl shadow-lg p-8 border"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border"
             style={{
               borderColor: 'var(--color-border-primary)',
             }}
           >
             {/* Question Input */}
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-3">
+            <div className="mb-4 sm:mb-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3">
                 <label
-                  className="block text-base font-medium"
+                  className="block text-sm sm:text-base font-medium"
                   style={{ color: 'var(--color-text-primary)' }}
                 >
                   Enter your question
@@ -196,21 +223,21 @@ export const TeacherDashboard: React.FC = () => {
               </div>
 
               <textarea
-                className="w-full px-4 py-4 rounded-xl border text-base resize-none"
+                className="w-full px-3 sm:px-4 py-3 sm:py-4 rounded-lg sm:rounded-xl border text-sm sm:text-base resize-none"
                 style={{
                   borderColor: 'var(--color-border-primary)',
                   backgroundColor: 'var(--color-background-tertiary)',
                   outline: 'none',
-                  minHeight: '120px',
+                  minHeight: '100px',
                 }}
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Rahul Bajaj"
+                placeholder="Enter your question here..."
                 maxLength={500}
               />
               <div className="text-right mt-2">
                 <span
-                  className="text-sm"
+                  className="text-xs sm:text-sm"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
                   {question.length}/100
@@ -220,15 +247,15 @@ export const TeacherDashboard: React.FC = () => {
 
             {/* Options */}
             <div className="mb-6">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-between items-center mb-3 sm:mb-4">
                 <h3
-                  className="text-base font-medium"
+                  className="text-sm sm:text-base font-medium"
                   style={{ color: 'var(--color-text-primary)' }}
                 >
                   Edit Options
                 </h3>
                 <h3
-                  className="text-base font-medium"
+                  className="text-sm sm:text-base font-medium hidden sm:block"
                   style={{ color: 'var(--color-text-primary)' }}
                 >
                   Is it Correct?
@@ -236,48 +263,61 @@ export const TeacherDashboard: React.FC = () => {
               </div>
 
               {options.map((option, index) => (
-                <div key={index} className="flex gap-4 mb-4 items-center">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0"
-                    style={{ backgroundColor: 'var(--color-primary)' }}
-                  >
-                    {index + 1}
+                <div
+                  key={index}
+                  className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-3 sm:mb-4"
+                >
+                  <div className="flex gap-2 sm:gap-4 items-center flex-1">
+                    <div
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0 text-sm sm:text-base"
+                      style={{ backgroundColor: 'var(--color-primary)' }}
+                    >
+                      {index + 1}
+                    </div>
+
+                    <input
+                      type="text"
+                      className="flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl border text-sm sm:text-base"
+                      style={{
+                        borderColor: 'var(--color-border-primary)',
+                        backgroundColor: 'var(--color-background-tertiary)',
+                        outline: 'none',
+                      }}
+                      value={option}
+                      onChange={(e) =>
+                        handleOptionChange(index, e.target.value)
+                      }
+                      placeholder="Enter option..."
+                    />
                   </div>
 
-                  <input
-                    type="text"
-                    className="flex-1 px-4 py-3 rounded-xl border"
-                    style={{
-                      borderColor: 'var(--color-border-primary)',
-                      backgroundColor: 'var(--color-background-tertiary)',
-                      outline: 'none',
-                    }}
-                    value={option}
-                    onChange={(e) => handleOptionChange(index, e.target.value)}
-                    placeholder="Rahul Bajaj"
-                  />
-
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2">
+                  <div className="flex gap-3 sm:gap-4 pl-10 sm:pl-0">
+                    <label className="flex items-center gap-1 sm:gap-2">
                       <input
                         type="radio"
                         name={`correct-${index}`}
-                        className="w-5 h-5"
+                        className="w-4 h-4 sm:w-5 sm:h-5"
                         style={{ accentColor: 'var(--color-primary)' }}
                       />
-                      <span style={{ color: 'var(--color-text-secondary)' }}>
+                      <span
+                        className="text-sm sm:text-base"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                      >
                         Yes
                       </span>
                     </label>
-                    <label className="flex items-center gap-2">
+                    <label className="flex items-center gap-1 sm:gap-2">
                       <input
                         type="radio"
                         name={`correct-${index}`}
-                        className="w-5 h-5"
+                        className="w-4 h-4 sm:w-5 sm:h-5"
                         defaultChecked
                         style={{ accentColor: 'var(--color-primary)' }}
                       />
-                      <span style={{ color: 'var(--color-text-secondary)' }}>
+                      <span
+                        className="text-sm sm:text-base"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                      >
                         No
                       </span>
                     </label>
@@ -288,7 +328,7 @@ export const TeacherDashboard: React.FC = () => {
               {options.length < 10 && (
                 <button
                   onClick={handleAddOption}
-                  className="text-base font-medium mt-2"
+                  className="text-sm sm:text-base font-medium mt-2"
                   style={{ color: 'var(--color-primary)' }}
                 >
                   + Add More option
@@ -299,7 +339,7 @@ export const TeacherDashboard: React.FC = () => {
             {/* Ask Question Button */}
             <button
               onClick={handleCreatePoll}
-              className="w-full py-4 rounded-full text-white font-semibold text-base transition-all"
+              className="w-full py-3 sm:py-4 rounded-full text-white font-semibold text-sm sm:text-base transition-all active:scale-[0.98]"
               style={{
                 background: 'linear-gradient(135deg, #7765DA 0%, #5767D0 100%)',
                 boxShadow: '0 4px 12px rgba(119, 101, 218, 0.3)',
@@ -316,15 +356,18 @@ export const TeacherDashboard: React.FC = () => {
     );
   }
 
-  // Active Poll Results Screen (Figma Match)
+  // Active Poll Results Screen (Figma Match + Responsive)
   return (
-    <div className="min-h-screen bg-white p-8">
-      <div className="flex justify-between items-center mb-8">
-        <BrandBadge />
+    <div className="min-h-screen bg-white p-3 sm:p-4 md:p-6 lg:p-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <BackButton onClick={() => navigate('/')} />
+          <BrandBadge />
+        </div>
 
         <button
           onClick={() => navigate('/teacher/history')}
-          className="flex items-center gap-2 px-6 py-3 rounded-full text-white font-semibold transition-all"
+          className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-full text-white font-semibold text-sm sm:text-base transition-all active:scale-[0.98]"
           style={{
             background: 'linear-gradient(135deg, #7765DA 0%, #5767D0 100%)',
             boxShadow: '0 4px 12px rgba(119, 101, 218, 0.3)',
@@ -338,15 +381,15 @@ export const TeacherDashboard: React.FC = () => {
         </button>
       </div>
 
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto px-2 sm:px-4">
         <div
-          className="bg-white rounded-2xl shadow-lg p-8 border"
+          className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border"
           style={{
             borderColor: 'var(--color-border-primary)',
           }}
         >
           <h2
-            className="text-3xl font-bold mb-8"
+            className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 md:mb-8"
             style={{ color: 'var(--color-text-primary)' }}
           >
             Question
@@ -354,35 +397,36 @@ export const TeacherDashboard: React.FC = () => {
 
           {/* Question Header */}
           <div
-            className="rounded-xl p-4 mb-6"
+            className="rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 sm:mb-6"
             style={{
-              backgroundColor: 'var(--color-gray-700)',
-              color: 'white',
+              backgroundColor: 'var(--color-gray-900)',
             }}
           >
-            <h3 className="text-lg font-medium">{currentPoll.question}</h3>
+            <h3 className="text-base sm:text-lg font-medium text-white">
+              {currentPoll.question}
+            </h3>
           </div>
 
           {/* Results */}
-          <div className="space-y-4 mb-8">
+          <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
             {results.map((result, index) => (
               <div
                 key={result.optionId}
-                className="border rounded-xl p-4"
+                className="border rounded-lg sm:rounded-xl p-3 sm:p-4"
                 style={{
                   borderColor: 'var(--color-border-primary)',
                 }}
               >
-                <div className="flex justify-between items-center mb-3">
-                  <div className="flex items-center gap-3">
+                <div className="flex justify-between items-center mb-2 sm:mb-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold"
+                      className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm sm:text-base"
                       style={{ backgroundColor: 'var(--color-primary)' }}
                     >
                       {index + 1}
                     </div>
                     <span
-                      className="font-medium text-lg"
+                      className="font-medium text-sm sm:text-base md:text-lg"
                       style={{ color: 'var(--color-text-primary)' }}
                     >
                       {result.optionText}

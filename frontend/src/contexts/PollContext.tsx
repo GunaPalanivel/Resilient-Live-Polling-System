@@ -50,7 +50,7 @@ export const PollProvider: React.FC<{ children: React.ReactNode }> = ({
     const handlePollExpired = (poll: Poll) => {
       console.log('⏰ Poll expired event received:', poll);
       setCurrentPoll(poll);
-      toast.info('Poll expired!');
+      toast('Poll expired!', { icon: '⏰' });
     };
 
     const handleTimerTick = (data: { pollId: string; remaining: number }) => {

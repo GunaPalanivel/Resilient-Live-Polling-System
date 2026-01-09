@@ -94,7 +94,7 @@ const startServer = async () => {
     await connectDatabase();
 
     // Start HTTP server with callback
-    httpServer.listen(PORT, '0.0.0.0', () => {
+    httpServer.listen(Number(PORT), () => {
       logger.info(`🚀 Server running on port ${PORT}`);
       logger.info(`🌐 Listening on 0.0.0.0:${PORT}`);
       logger.info(`📡 Socket.io ready for connections`);

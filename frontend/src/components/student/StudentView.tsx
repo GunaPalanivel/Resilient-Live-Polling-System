@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePoll } from '../../contexts/PollContext';
 import { useSocket } from '../../hooks/useSocket';
@@ -7,7 +8,29 @@ import { BrandBadge } from '../ui/BrandBadge.tsx';
 import { ChatButton, ChatPopup } from '../ui/Chat.tsx';
 import toast from 'react-hot-toast';
 
+// Back button component for consistent styling
+const BackButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+  <button
+    onClick={onClick}
+    className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:bg-gray-100"
+    style={{ color: 'var(--color-text-secondary)' }}
+  >
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M19 12H5M12 19l-7-7 7-7" />
+    </svg>
+    <span className="font-medium">Back</span>
+  </button>
+);
+
 export const StudentView: React.FC = () => {
+  const navigate = useNavigate();
   const { studentName, studentSessionId, isAuthenticated, login } = useAuth();
   const { currentPoll, results, totalVotes, remainingSeconds } = usePoll();
   const { emit } = useSocket();
@@ -73,95 +96,108 @@ export const StudentView: React.FC = () => {
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  // Login Screen (Figma Match)
+  // Login Screen (Figma Match + Responsive)
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
-        <BrandBadge className="mb-8" />
+      <div className="min-h-screen bg-white flex flex-col p-3 sm:p-4 md:p-6">
+        <div className="flex justify-between items-center mb-4 md:mb-8">
+          <BackButton onClick={() => navigate('/')} />
+        </div>
 
-        <div className="w-full max-w-md">
-          <h2
-            className="text-3xl font-bold text-center mb-3"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            Let's Get Started
-          </h2>
+        <div className="flex-1 flex flex-col items-center justify-center px-2 sm:px-4">
+          <BrandBadge className="mb-6 md:mb-8" />
 
-          <p
-            className="text-center mb-8"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            If you're a student, you'll be able to{' '}
-            <strong>submit your answers</strong>, participate in live polls, and
-            see how your responses compare with your classmates
-          </p>
-
-          <div className="space-y-4">
-            <div>
-              <label
-                className="block text-base font-medium mb-2"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                Enter your Name
-              </label>
-              <input
-                type="text"
-                className="w-full px-4 py-4 rounded-xl border text-base"
-                style={{
-                  borderColor: 'var(--color-border-primary)',
-                  backgroundColor: 'var(--color-background-tertiary)',
-                  outline: 'none',
-                }}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Rahul Bajaj"
-                maxLength={100}
-                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-              />
-            </div>
-
-            <button
-              onClick={handleLogin}
-              className="w-full py-4 rounded-full text-white font-semibold text-base transition-all"
-              style={{
-                background: 'linear-gradient(135deg, #7765DA 0%, #5767D0 100%)',
-                boxShadow: '0 4px 12px rgba(119, 101, 218, 0.3)',
-              }}
+          <div className="w-full max-w-md">
+            <h2
+              className="text-2xl sm:text-3xl font-bold text-center mb-2 sm:mb-3"
+              style={{ color: 'var(--color-text-primary)' }}
             >
-              Continue
-            </button>
+              Let's Get Started
+            </h2>
+
+            <p
+              className="text-center mb-6 md:mb-8 text-sm sm:text-base"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              If you're a student, you'll be able to{' '}
+              <strong>submit your answers</strong>, participate in live polls,
+              and see how your responses compare with your classmates
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label
+                  className="block text-sm sm:text-base font-medium mb-2"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  Enter your Name
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 sm:px-4 py-3 sm:py-4 rounded-xl border text-sm sm:text-base"
+                  style={{
+                    borderColor: 'var(--color-border-primary)',
+                    backgroundColor: 'var(--color-background-tertiary)',
+                    outline: 'none',
+                  }}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Rahul Bajaj"
+                  maxLength={100}
+                  onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                />
+              </div>
+
+              <button
+                onClick={handleLogin}
+                className="w-full py-3 sm:py-4 rounded-full text-white font-semibold text-sm sm:text-base transition-all active:scale-[0.98]"
+                style={{
+                  background:
+                    'linear-gradient(135deg, #7765DA 0%, #5767D0 100%)',
+                  boxShadow: '0 4px 12px rgba(119, 101, 218, 0.3)',
+                }}
+              >
+                Continue
+              </button>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // Waiting Screen (Figma Match)
+  // Waiting Screen (Figma Match + Responsive)
   if (!currentPoll || currentPoll.status !== 'active') {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
-        <BrandBadge className="mb-8" />
+      <div className="min-h-screen bg-white flex flex-col p-3 sm:p-4 md:p-6">
+        <div className="flex justify-between items-center mb-4 md:mb-8">
+          <BackButton onClick={() => navigate('/')} />
+        </div>
 
-        <div
-          className="flex flex-col items-center justify-center"
-          style={{ minHeight: '400px' }}
-        >
-          {/* Animated Loading Spinner */}
+        <div className="flex-1 flex flex-col items-center justify-center px-4">
+          <BrandBadge className="mb-6 md:mb-8" />
+
           <div
-            className="w-16 h-16 rounded-full mb-6"
-            style={{
-              border: '4px solid var(--color-primary-light)',
-              borderTopColor: 'var(--color-primary)',
-              animation: 'spin 1s linear infinite',
-            }}
-          />
-
-          <h2
-            className="text-2xl font-bold mb-2"
-            style={{ color: 'var(--color-text-primary)' }}
+            className="flex flex-col items-center justify-center"
+            style={{ minHeight: '300px' }}
           >
-            Wait for the teacher to ask questions..
-          </h2>
+            {/* Animated Loading Spinner */}
+            <div
+              className="w-12 h-12 sm:w-16 sm:h-16 rounded-full mb-4 sm:mb-6"
+              style={{
+                border: '4px solid var(--color-primary-light)',
+                borderTopColor: 'var(--color-primary)',
+                animation: 'spin 1s linear infinite',
+              }}
+            />
+
+            <h2
+              className="text-lg sm:text-xl md:text-2xl font-bold mb-2 text-center"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              Wait for the teacher to ask questions..
+            </h2>
+          </div>
         </div>
 
         <ChatButton onClick={() => setChatOpen(!chatOpen)} />
@@ -176,21 +212,25 @@ export const StudentView: React.FC = () => {
     );
   }
 
-  // Results Screen (Figma Match)
+  // Results Screen (Figma Match + Responsive)
   if (hasVoted || currentPoll.status !== 'active') {
     return (
-      <div className="min-h-screen bg-white p-4">
-        <BrandBadge className="mx-auto mt-8 mb-12" />
+      <div className="min-h-screen bg-white p-3 sm:p-4 md:p-6">
+        <div className="flex justify-between items-center mb-4">
+          <BackButton onClick={() => navigate('/')} />
+        </div>
 
-        <div className="max-w-4xl mx-auto">
+        <BrandBadge className="mx-auto mb-6 md:mb-8" />
+
+        <div className="max-w-4xl mx-auto px-2 sm:px-4">
           <div
-            className="bg-white rounded-2xl shadow-lg p-8 border"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border"
             style={{
               borderColor: 'var(--color-border-primary)',
             }}
           >
             <h2
-              className="text-3xl font-bold mb-8"
+              className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 md:mb-8"
               style={{ color: 'var(--color-text-primary)' }}
             >
               Question
@@ -200,7 +240,7 @@ export const StudentView: React.FC = () => {
             <div
               className="rounded-t-xl p-4 mb-6"
               style={{
-                backgroundColor: 'var(--color-gray-700)',
+                backgroundColor: 'var(--color-gray-900)',
                 color: 'white',
               }}
             >
@@ -314,121 +354,137 @@ export const StudentView: React.FC = () => {
     );
   }
 
-  // Question/Voting Screen (Figma Match)
+  // Question/Voting Screen (Figma Match + Responsive)
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center p-4">
-      <BrandBadge className="mt-8 mb-8" />
+    <div className="min-h-screen bg-white flex flex-col p-3 sm:p-4 md:p-6">
+      <div className="flex justify-between items-center mb-4">
+        <BackButton onClick={() => navigate('/')} />
+      </div>
 
-      <div className="w-full max-w-2xl mx-auto flex-1 flex items-center">
-        <div
-          className="w-full bg-white rounded-2xl shadow-lg p-8 border"
-          style={{
-            borderColor: 'var(--color-border-primary)',
-          }}
-        >
-          {/* Header */}
-          <div className="flex justify-between items-start mb-8">
-            <h2
-              className="text-2xl font-bold"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              Question 1
-            </h2>
-            <div
-              className="flex items-center gap-2 px-4 py-2 rounded-full"
-              style={{
-                backgroundColor: 'var(--color-background-tertiary)',
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <circle
-                  cx="8"
-                  cy="8"
-                  r="7"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <path
-                  d="M8 4v4l3 2"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span className="font-semibold" style={{ color: '#FF5757' }}>
-                {formatTime(remainingSeconds)}
-              </span>
-            </div>
-          </div>
+      <div className="flex-1 flex flex-col items-center px-2 sm:px-4">
+        <BrandBadge className="mb-6 md:mb-8" />
 
-          {/* Question */}
+        <div className="w-full max-w-2xl mx-auto flex-1 flex items-center">
           <div
-            className="rounded-xl p-4 mb-6"
+            className="w-full bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border"
             style={{
-              backgroundColor: 'var(--color-gray-700)',
-              color: 'white',
+              borderColor: 'var(--color-border-primary)',
             }}
           >
-            <h3 className="text-lg font-medium">{currentPoll.question}</h3>
-          </div>
-
-          {/* Options */}
-          <div className="space-y-3 mb-8">
-            {currentPoll.options.map((option, index) => (
-              <button
-                key={option.id}
-                onClick={() => handleVote(option.id)}
-                className="w-full text-left p-4 rounded-xl border-2 transition-all duration-200 hover:scale-[1.02]"
+            {/* Header */}
+            <div className="flex justify-between items-start mb-4 sm:mb-6 md:mb-8">
+              <h2
+                className="text-lg sm:text-xl md:text-2xl font-bold"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                Question 1
+              </h2>
+              <div
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 rounded-full"
                 style={{
-                  borderColor:
-                    selectedOption === option.id
-                      ? 'var(--color-primary)'
-                      : 'var(--color-border-primary)',
-                  backgroundColor:
-                    selectedOption === option.id
-                      ? 'var(--color-primary-light)'
-                      : 'white',
+                  backgroundColor: 'var(--color-background-tertiary)',
                 }}
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0"
-                    style={{
-                      backgroundColor:
-                        selectedOption === option.id
-                          ? 'var(--color-primary)'
-                          : 'var(--color-gray-600)',
-                    }}
-                  >
-                    {index + 1}
-                  </div>
-                  <span
-                    className="font-medium text-lg"
-                    style={{ color: 'var(--color-text-primary)' }}
-                  >
-                    {option.text}
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  className="sm:w-4 sm:h-4"
+                >
+                  <circle
+                    cx="8"
+                    cy="8"
+                    r="7"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                  <path
+                    d="M8 4v4l3 2"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span
+                  className="font-semibold text-sm sm:text-base"
+                  style={{ color: '#FF5757' }}
+                >
+                  {formatTime(remainingSeconds)}
+                </span>
+              </div>
+            </div>
 
-          {/* Submit Button */}
-          <button
-            onClick={() => selectedOption && handleVote(selectedOption)}
-            disabled={!selectedOption}
-            className="w-full py-4 rounded-full text-white font-semibold text-base transition-all disabled:opacity-50"
-            style={{
-              background: selectedOption
-                ? 'linear-gradient(135deg, #7765DA 0%, #5767D0 100%)'
-                : '#BDBDBD',
-              boxShadow: selectedOption
-                ? '0 4px 12px rgba(119, 101, 218, 0.3)'
-                : 'none',
-            }}
-          >
-            Submit
-          </button>
+            {/* Question */}
+            <div
+              className="rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 sm:mb-6"
+              style={{
+                backgroundColor: 'var(--color-gray-900)',
+              }}
+            >
+              <h3 className="text-base sm:text-lg font-medium text-white">
+                {currentPoll.question}
+              </h3>
+            </div>
+
+            {/* Options */}
+            <div className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
+              {currentPoll.options.map((option, index) => (
+                <button
+                  key={option.id}
+                  onClick={() => handleVote(option.id)}
+                  className="w-full text-left p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200 hover:scale-[1.01] sm:hover:scale-[1.02] active:scale-[0.99]"
+                  style={{
+                    borderColor:
+                      selectedOption === option.id
+                        ? 'var(--color-primary)'
+                        : 'var(--color-border-primary)',
+                    backgroundColor:
+                      selectedOption === option.id
+                        ? 'var(--color-primary-light)'
+                        : 'white',
+                  }}
+                >
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div
+                      className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0 text-sm sm:text-base"
+                      style={{
+                        backgroundColor:
+                          selectedOption === option.id
+                            ? 'var(--color-primary)'
+                            : 'var(--color-gray-600)',
+                      }}
+                    >
+                      {index + 1}
+                    </div>
+                    <span
+                      className="font-medium text-sm sm:text-base md:text-lg"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
+                      {option.text}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Submit Button */}
+            <button
+              onClick={() => selectedOption && handleVote(selectedOption)}
+              disabled={!selectedOption}
+              className="w-full py-3 sm:py-4 rounded-full text-white font-semibold text-sm sm:text-base transition-all disabled:opacity-50 active:scale-[0.98]"
+              style={{
+                background: selectedOption
+                  ? 'linear-gradient(135deg, #7765DA 0%, #5767D0 100%)'
+                  : '#BDBDBD',
+                boxShadow: selectedOption
+                  ? '0 4px 12px rgba(119, 101, 218, 0.3)'
+                  : 'none',
+              }}
+            >
+              Submit
+            </button>
+          </div>
         </div>
       </div>
 
