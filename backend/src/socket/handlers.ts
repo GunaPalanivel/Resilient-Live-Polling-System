@@ -23,21 +23,50 @@ export const setupSocketHandlers = (io: Server) => {
       'join:student',
       async (data: {
         sessionId: string;
-        pollId: string;
+        pollId?: string;
         studentName: string;
       }) => {
         try {
           const { sessionId, pollId, studentName } = data;
 
-          // Create or update student session
-          await studentService.createSession(sessionId, pollId, studentName);
-
+          // Always join student room first
           socket.join('student-room');
-          socket.join(`poll:${pollId}`);
 
-          // Notify teacher of new student
-          const students = await studentService.getActiveStudents(pollId);
-          io.to('teacher-room').emit('students:update', students);
+          // Get active poll (use provided pollId or fetch active)
+          const activePoll = await pollService.getActivePoll();
+
+          if (activePoll) {
+            const actualPollId = pollId || activePoll._id;
+
+            // Create or update student session
+            await studentService.createSession(
+              sessionId,
+              actualPollId,
+              studentName
+            );
+
+            socket.join(`poll:${actualPollId}`);
+
+            // Send current poll state to this student (for late joiners)
+            socket.emit('poll:created', activePoll);
+
+            // Send current timer state
+            const timerState = await timerService.getTimerState(actualPollId);
+            socket.emit('timer:tick', {
+              pollId: actualPollId,
+              remaining: timerState.remaining,
+            });
+
+            // Send current vote results
+            const results = await voteService.getVoteResults(actualPollId);
+            const totalVotes = await voteService.getTotalVotes(actualPollId);
+            socket.emit('vote:update:student', { results, totalVotes });
+
+            // Notify teacher of new student
+            const students =
+              await studentService.getActiveStudents(actualPollId);
+            io.to('teacher-room').emit('students:update', students);
+          }
 
           logger.info(`Student joined: ${socket.id} - ${studentName}`);
         } catch (error) {

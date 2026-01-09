@@ -59,15 +59,16 @@ export const StudentView: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPoll?._id]);
 
+  // Join student room as soon as authenticated (don't wait for poll)
   useEffect(() => {
-    if (isAuthenticated && currentPoll) {
+    if (isAuthenticated) {
       emit('join:student', {
         sessionId: studentSessionId,
-        pollId: currentPoll._id,
+        pollId: currentPoll?._id, // Optional - backend will fetch active poll
         studentName,
       });
     }
-  }, [isAuthenticated, currentPoll, emit, studentSessionId, studentName]);
+  }, [isAuthenticated, emit, studentSessionId, studentName, currentPoll?._id]);
 
   const handleLogin = () => {
     if (!name.trim()) {

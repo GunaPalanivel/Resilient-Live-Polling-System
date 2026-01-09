@@ -40,6 +40,10 @@ export class PollService {
       : null;
   }
 
+  async getActivePoll(): Promise<Poll | null> {
+    return this.getCurrentPoll();
+  }
+
   async getPollById(pollId: string): Promise<Poll | null> {
     const poll = await PollModel.findById(pollId);
     return poll
