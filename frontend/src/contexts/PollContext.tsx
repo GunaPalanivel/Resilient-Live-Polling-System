@@ -17,7 +17,9 @@ interface PollContextType {
 
 const PollContext = createContext<PollContextType | undefined>(undefined);
 
-export const PollProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const PollProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [currentPoll, setCurrentPoll] = useState<Poll | null>(null);
   const [results, setResults] = useState<VoteResult[]>([]);
   const [detailedVotes, setDetailedVotes] = useState<DetailedVote[]>([]);
@@ -89,10 +91,32 @@ export const PollProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [on, off, currentPoll]);
 
-  const createPoll = (question: string, options: string[], duration: number) => {
+  const createPoll = (
+    question: string,
+    options: string[],
+    duration: number
+  ) => {
     setIsLoading(true);
-    emit('poll:create', { question, options, duration });
-    setTimeout(() => setIsLoading(false), 1000);
+
+    // Emit with error callback
+    emit('poll:create', { question, options, duration }, (error: any) => {
+      setIsLoading(false);
+
+      if (error) {
+        console.error('Poll creation error:', error);
+
+        // Handle specific error messages
+        if (error.message === 'ACTIVE_POLL_EXISTS') {
+          toast.error(
+            'A poll is already active. End it before creating a new one.'
+          );
+        } else {
+          toast.error(
+            'Failed to create poll: ' + (error.message || 'Unknown error')
+          );
+        }
+      }
+    });
   };
 
   const endPoll = () => {

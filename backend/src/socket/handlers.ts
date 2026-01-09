@@ -48,11 +48,14 @@ export const setupSocketHandlers = (io: Server) => {
     // Poll creation
     socket.on(
       'poll:create',
-      async (data: {
-        question: string;
-        options: string[];
-        duration: number;
-      }) => {
+      async (
+        data: {
+          question: string;
+          options: string[];
+          duration: number;
+        },
+        callback?: (error?: any, response?: any) => void
+      ) => {
         try {
           const poll = await pollService.createPoll(
             data.question,
@@ -66,10 +69,20 @@ export const setupSocketHandlers = (io: Server) => {
           // Start timer
           startPollTimer(io, poll._id, poll.duration);
 
+          if (callback) callback(null, poll);
+
           logger.info(`Poll created: ${poll._id}`);
         } catch (error) {
           logger.error('Error creating poll:', error);
-          socket.emit('error', { message: 'Failed to create poll' });
+
+          // Send error back to client
+          const errorMessage =
+            error instanceof Error ? error.message : 'Failed to create poll';
+          if (callback) {
+            callback({ message: errorMessage });
+          } else {
+            socket.emit('error', { message: errorMessage });
+          }
         }
       }
     );

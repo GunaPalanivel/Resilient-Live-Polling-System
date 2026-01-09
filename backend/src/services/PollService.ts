@@ -45,7 +45,7 @@ export class PollService {
 
   async endPoll(pollId: string): Promise<Poll> {
     const poll = await PollModel.findById(pollId);
-    
+
     if (!poll) {
       throw new Error('POLL_NOT_FOUND');
     }
@@ -63,7 +63,7 @@ export class PollService {
 
   async expirePoll(pollId: string): Promise<Poll> {
     const poll = await PollModel.findById(pollId);
-    
+
     if (!poll) {
       throw new Error('POLL_NOT_FOUND');
     }
@@ -83,13 +83,13 @@ export class PollService {
     const polls = await PollModel.find({ status: { $ne: 'active' } })
       .sort({ createdAt: -1 })
       .limit(50);
-    
+
     return polls.map((poll) => poll.toObject());
   }
 
   async checkAndExpirePolls(): Promise<void> {
     const activePolls = await PollModel.find({ status: 'active' });
-    
+
     for (const poll of activePolls) {
       const elapsed = Date.now() - poll.startedAt.getTime();
       if (elapsed >= poll.duration * 1000) {
@@ -98,6 +98,17 @@ export class PollService {
         await poll.save();
       }
     }
+  }
+
+  async clearActivePoll(): Promise<void> {
+    // Mark all active polls as ended
+    await PollModel.updateMany(
+      { status: 'active' },
+      {
+        status: 'ended',
+        endedAt: new Date(),
+      }
+    );
   }
 }
 

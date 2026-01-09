@@ -111,7 +111,7 @@ router.get('/:pollId/results', async (req, res, next) => {
         results,
         detailedVotes,
       };
-      
+
       return res.json({
         success: true,
         data: teacherResults,
@@ -131,12 +131,34 @@ router.get('/:pollId/results', async (req, res, next) => {
         hasVoted,
         userVote: userVote || undefined,
       };
-      
+
       return res.json({
         success: true,
         data: studentResults,
       });
     }
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Admin: Clear all active polls (development only)
+router.post('/admin/clear-active', async (req, res, next) => {
+  try {
+    // In development, allow clearing active polls
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({
+        success: false,
+        error: 'This endpoint is not available in production',
+      });
+    }
+
+    await pollService.clearActivePoll();
+
+    res.json({
+      success: true,
+      message: 'All active polls cleared',
+    });
   } catch (error) {
     next(error);
   }
