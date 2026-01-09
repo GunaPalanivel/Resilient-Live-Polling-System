@@ -5,35 +5,35 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border-primary;
   }
-  
+
   body {
     @apply bg-background text-text-primary font-sans antialiased;
     font-family: var(--font-family);
     line-height: var(--line-height-normal);
   }
-  
+
   h1 {
     @apply text-4xl font-bold;
   }
-  
+
   h2 {
     @apply text-3xl font-bold;
   }
-  
+
   h3 {
     @apply text-2xl font-semibold;
   }
-  
+
   h4 {
     @apply text-xl font-semibold;
   }
-  
+
   p {
     @apply text-base;
   }
-  
+
   button {
     @apply transition-all duration-200;
   }
@@ -45,17 +45,17 @@
     height: var(--button-height-md);
     padding: 0 var(--spacing-4);
   }
-  
+
   .btn-secondary {
     @apply bg-background-tertiary hover:bg-border-secondary text-text-primary font-medium rounded-full;
     height: var(--button-height-sm);
     padding: 0 var(--spacing-3);
   }
-  
+
   .card {
     @apply bg-background rounded-md shadow-md p-6 border border-border-primary;
   }
-  
+
   .input {
     @apply w-full px-4 py-3 rounded-lg border border-border-primary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all;
   }
