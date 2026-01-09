@@ -5,54 +5,65 @@ import toast from 'react-hot-toast';
 
 const WS_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export const useSocket = () => {
-  const socketRef = useRef<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const errorHandlerRef = useRef<((error: any) => void) | null>(null);
-  const isInitializedRef = useRef(false);
+// Create a singleton socket instance outside of React
+let globalSocket: Socket | null = null;
+let connectionCount = 0;
 
-  useEffect(() => {
-    // Prevent double-initialization in React.StrictMode
-    if (isInitializedRef.current) {
-      return;
-    }
-    isInitializedRef.current = true;
-
+const getSocket = () => {
+  if (!globalSocket || globalSocket.disconnected) {
     const sessionId = SessionService.getSessionId();
+    console.log('🔗 Creating Socket.io connection to:', WS_URL);
 
-    socketRef.current = io(WS_URL, {
+    globalSocket = io(WS_URL, {
       query: { sessionId },
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'], // Start with polling, upgrade to websocket
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
+      timeout: 20000,
+      autoConnect: true,
     });
+  }
+  return globalSocket;
+};
 
-    socketRef.current.on('connect', () => {
-      console.log('✅ Socket connected');
+export const useSocket = () => {
+  const [isConnected, setIsConnected] = useState(false);
+  const errorHandlerRef = useRef<((error: any) => void) | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    // Get the singleton socket
+    const socket = getSocket();
+    socketRef.current = socket;
+    connectionCount++;
+
+    console.log(`🔌 useSocket hook mounted (count: ${connectionCount})`);
+
+    const handleConnect = () => {
+      console.log('✅ Socket connected successfully:', socket.id);
       setIsConnected(true);
       toast.success('Connected to server', { duration: 2000 });
-    });
+    };
 
-    socketRef.current.on('disconnect', (reason) => {
+    const handleDisconnect = (reason: string) => {
       console.log('❌ Socket disconnected:', reason);
       setIsConnected(false);
       if (reason !== 'io client namespace disconnect') {
-        toast.error('Disconnected from server', { duration: 3000 });
+        toast.error(`Disconnected: ${reason}`, { duration: 3000 });
       }
-    });
+    };
 
-    socketRef.current.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
+    const handleConnectError = (error: any) => {
+      console.error('Socket connection error:', error.message || error);
       toast.error('Connection error: ' + (error.message || 'Unknown error'), {
         duration: 3000,
       });
-    });
+    };
 
-    socketRef.current.on('error', (error) => {
+    const handleError = (error: any) => {
       console.error('Socket error:', error);
-      // Delegate to custom error handlers if set
       if (errorHandlerRef.current) {
         errorHandlerRef.current(error);
       } else {
@@ -60,11 +71,40 @@ export const useSocket = () => {
           duration: 3000,
         });
       }
-    });
+    };
+
+    // Attach event listeners
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('connect_error', handleConnectError);
+    socket.on('error', handleError);
+
+    // If already connected, update state
+    if (socket.connected) {
+      setIsConnected(true);
+    } else {
+      // Connect if not connected
+      socket.connect();
+    }
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
+      connectionCount--;
+      console.log(
+        `🔌 useSocket hook unmounting (remaining: ${connectionCount})`
+      );
+
+      // Remove event listeners but DON'T disconnect the socket
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('connect_error', handleConnectError);
+      socket.off('error', handleError);
+
+      // Only disconnect if no more components are using the socket
+      if (connectionCount <= 0) {
+        console.log('🔌 All components unmounted, closing socket');
+        socket.disconnect();
+        globalSocket = null;
+        connectionCount = 0;
       }
     };
   }, []);

@@ -19,17 +19,49 @@ const httpServer = createServer(app);
 // Setup Socket.io
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: [
+      process.env.CORS_ORIGIN || 'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:5175',
+      'http://localhost:5176',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:5174',
+      'http://127.0.0.1:5175',
+      'http://127.0.0.1:5176',
+    ],
     methods: ['GET', 'POST'],
     credentials: true,
   },
+  transports: ['websocket', 'polling'],
+  pingInterval: 25000,
+  pingTimeout: 60000,
+  allowEIO3: true,
+  httpCompression: {
+    threshold: 1024,
+  },
+  path: '/socket.io/',
+  serveClient: false,
 });
 
+// Add Socket.io error logging
+io.engine.on('connection_error', (err: any) => {
+  logger.error('Socket.io connection error:', err);
+});
+
+logger.info('✅ Socket.io initialized');
+
 // Middleware
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: [
+      process.env.CORS_ORIGIN || 'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:5175',
+      'http://localhost:5176',
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -39,13 +71,18 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Routes
 app.use('/api', routes);
 
 // Error handler (must be last)
 app.use(errorHandler);
 
-// Setup Socket.io handlers
+// Setup Socket.io handlers BEFORE starting server
 setupSocketHandlers(io);
 
 // Start server
@@ -55,12 +92,15 @@ const startServer = async () => {
   try {
     // Connect to database
     await connectDatabase();
-    
-    // Start HTTP server
-    httpServer.listen(PORT, () => {
+
+    // Start HTTP server with callback
+    httpServer.listen(PORT, '0.0.0.0', () => {
       logger.info(`🚀 Server running on port ${PORT}`);
+      logger.info(`🌐 Listening on 0.0.0.0:${PORT}`);
       logger.info(`📡 Socket.io ready for connections`);
-      logger.info(`🌍 CORS enabled for: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
+      logger.info(
+        `🌍 CORS enabled for: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`
+      );
     });
   } catch (error) {
     logger.error('Failed to start server:', error);

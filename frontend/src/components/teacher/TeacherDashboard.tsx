@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePoll } from '../../contexts/PollContext';
 import { BrandBadge } from '../ui/BrandBadge.tsx';
@@ -22,6 +22,7 @@ export const TeacherDashboard: React.FC = () => {
   const [duration, setDuration] = useState(60);
   const [chatOpen, setChatOpen] = useState(false);
   const [showDurationMenu, setShowDurationMenu] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const durationOptions = [
     { value: 30, label: '30 seconds' },
@@ -31,6 +32,26 @@ export const TeacherDashboard: React.FC = () => {
     { value: 180, label: '3 minutes' },
     { value: 300, label: '5 minutes' },
   ];
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowDurationMenu(false);
+      }
+    };
+
+    if (showDurationMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDurationMenu]);
 
   const handleAddOption = () => {
     if (options.length < 10) {
@@ -62,6 +83,7 @@ export const TeacherDashboard: React.FC = () => {
       return;
     }
 
+    console.log('🎯 Creating poll with duration:', duration, 'seconds');
     createPoll(question, validOptions, duration);
 
     setQuestion('');
@@ -109,7 +131,7 @@ export const TeacherDashboard: React.FC = () => {
                 >
                   Enter your question
                 </label>
-                <div className="relative">
+                <div className="relative" ref={dropdownRef}>
                   <button
                     type="button"
                     onClick={() => setShowDurationMenu(!showDurationMenu)}
@@ -119,8 +141,8 @@ export const TeacherDashboard: React.FC = () => {
                     }}
                   >
                     <span className="font-medium">
-                      {durationOptions.find((opt) => opt.value === duration)?.label ||
-                        `${duration} seconds`}
+                      {durationOptions.find((opt) => opt.value === duration)
+                        ?.label || `${duration} seconds`}
                     </span>
                     <svg
                       width="12"
@@ -161,7 +183,8 @@ export const TeacherDashboard: React.FC = () => {
                               duration === option.value
                                 ? 'var(--color-primary)'
                                 : 'var(--color-text-primary)',
-                            fontWeight: duration === option.value ? '600' : '400',
+                            fontWeight:
+                              duration === option.value ? '600' : '400',
                           }}
                         >
                           {option.label}

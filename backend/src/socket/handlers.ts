@@ -8,8 +8,10 @@ import { stateRecoveryService } from '../services/StateRecoveryService';
 import { logger } from '../utils/logger';
 
 export const setupSocketHandlers = (io: Server) => {
+  logger.info('🔌 Socket handlers setup started');
+
   io.on('connection', (socket: Socket) => {
-    logger.info(`Client connected: ${socket.id}`);
+    logger.info(`✅ Client SUCCESSFULLY connected: ${socket.id}`);
 
     // Join role-based rooms
     socket.on('join:teacher', () => {

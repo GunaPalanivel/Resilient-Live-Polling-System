@@ -32,6 +32,7 @@ export const PollProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     // Listen for poll events
     const handlePollCreated = (poll: Poll) => {
+      console.log('🔵 Poll created event received:', poll);
       setCurrentPoll(poll);
       setResults([]);
       setDetailedVotes([]);
@@ -41,19 +42,19 @@ export const PollProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     const handlePollEnded = (poll: Poll) => {
+      console.log('🔴 Poll ended event received:', poll);
       setCurrentPoll(poll);
       toast.success('Poll ended!');
     };
 
     const handlePollExpired = (poll: Poll) => {
+      console.log('⏰ Poll expired event received:', poll);
       setCurrentPoll(poll);
       toast.info('Poll expired!');
     };
 
     const handleTimerTick = (data: { pollId: string; remaining: number }) => {
-      if (currentPoll && data.pollId === currentPoll._id) {
-        setRemainingSeconds(data.remaining);
-      }
+      setRemainingSeconds(data.remaining);
     };
 
     const handleVoteUpdateTeacher = (data: {
@@ -89,7 +90,7 @@ export const PollProvider: React.FC<{ children: React.ReactNode }> = ({
       off('vote:update:teacher', handleVoteUpdateTeacher);
       off('vote:update:student', handleVoteUpdateStudent);
     };
-  }, [on, off, currentPoll]);
+  }, [on, off]);
 
   const createPoll = (
     question: string,
