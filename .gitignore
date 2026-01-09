@@ -48,7 +48,6 @@ postgres-data/
 
 # Local Documentation
 /docs/
-/README.md
 
 # IDE
 .vscode/
