@@ -35,6 +35,10 @@ export const StudentView: React.FC = () => {
   const handleVote = async (optionId: string) => {
     if (hasVoted || !currentPoll) return;
 
+    // Optimistic UI update - show selected immediately
+    setSelectedOption(optionId);
+    const previousVotedState = hasVoted;
+    
     try {
       await VoteAPI.submitVote(currentPoll._id, optionId, studentName!);
       
@@ -46,10 +50,20 @@ export const StudentView: React.FC = () => {
       });
       
       setHasVoted(true);
-      setSelectedOption(optionId);
       toast.success('Vote submitted!');
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to submit vote');
+      // Revert optimistic UI on error
+      setSelectedOption(null);
+      setHasVoted(previousVotedState);
+      
+      const errorMessage = error.response?.data?.error || 'Failed to submit vote';
+      
+      // Show specific error for duplicate votes
+      if (error.response?.status === 409) {
+        toast.error('Vote already submitted!');
+      } else {
+        toast.error(errorMessage);
+      }
     }
   };
 

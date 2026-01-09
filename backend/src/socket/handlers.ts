@@ -4,6 +4,7 @@ import { voteService } from '../services/VoteService';
 import { studentService } from '../services/StudentService';
 import { chatService } from '../services/ChatService';
 import { timerService } from '../services/TimerService';
+import { stateRecoveryService } from '../services/StateRecoveryService';
 import { logger } from '../utils/logger';
 
 export const setupSocketHandlers = (io: Server) => {
@@ -151,12 +152,53 @@ export const setupSocketHandlers = (io: Server) => {
       }
     });
 
+    // Timer sync - for late joiners and drift correction
+    socket.on('poll:sync', async (data: { pollId: string }, callback) => {
+      try {
+        const timerState = await timerService.getTimerState(data.pollId);
+        
+        // Auto-expire poll if time is up
+        if (timerState.expired && timerState.remaining === 0) {
+          try {
+            await pollService.endPoll(data.pollId);
+            io.emit('poll:expired', { pollId: data.pollId });
+          } catch (error) {
+            logger.error('Error expiring poll on sync:', error);
+          }
+        }
+        
+        callback(timerState);
+        logger.debug(`Poll sync requested: ${data.pollId} - remaining: ${timerState.remaining}s`);
+      } catch (error) {
+        logger.error('Error handling poll:sync:', error);
+        callback({ error: 'Failed to get timer state' });
+      }
+    });
+
     // Heartbeat
     socket.on('heartbeat', async (data: { sessionId: string }) => {
       try {
         await studentService.updateHeartbeat(data.sessionId);
       } catch (error) {
         logger.error('Error updating heartbeat:', error);
+      }
+    });
+
+    // State request - for reconnection recovery
+    socket.on('state:request', async (data: { role: 'teacher' | 'student'; sessionId?: string }, callback) => {
+      try {
+        if (data.role === 'teacher') {
+          const state = await stateRecoveryService.getTeacherState();
+          callback(state);
+        } else if (data.role === 'student' && data.sessionId) {
+          const state = await stateRecoveryService.getStudentState(data.sessionId);
+          callback(state);
+        } else {
+          callback({ error: 'Invalid role or missing sessionId' });
+        }
+      } catch (error) {
+        logger.error('Error handling state:request:', error);
+        callback({ error: 'Failed to get state' });
       }
     });
 
@@ -179,31 +221,37 @@ export const setupSocketHandlers = (io: Server) => {
 };
 
 // Timer implementation
-const activeTimers: Map<string, NodeJS.Timeout> = new Map();
+const activeTimers: Map<string, { interval: NodeJS.Timeout; syncInterval: NodeJS.Timeout }> = new Map();
 
 const startPollTimer = (io: Server, pollId: string, duration: number) => {
   // Clear existing timer if any
   const existingTimer = activeTimers.get(pollId);
   if (existingTimer) {
-    clearInterval(existingTimer);
+    clearInterval(existingTimer.interval);
+    clearInterval(existingTimer.syncInterval);
   }
 
   let remaining = duration;
   
+  // Main timer - tick every second
   const timer = setInterval(async () => {
     remaining--;
     
-    // Broadcast timer update
+    // Broadcast timer update to all clients
     io.emit('timer:tick', { pollId, remaining });
     
     // Check if expired
     if (remaining <= 0) {
       clearInterval(timer);
-      activeTimers.delete(pollId);
+      const timerData = activeTimers.get(pollId);
+      if (timerData) {
+        clearInterval(timerData.syncInterval);
+        activeTimers.delete(pollId);
+      }
       
       try {
         // Expire poll
-        const poll = await pollService.expirePoll(pollId);
+        const poll = await pollService.endPoll(pollId);
         io.emit('poll:expired', poll);
         
         logger.info(`Poll expired: ${pollId}`);
@@ -212,11 +260,26 @@ const startPollTimer = (io: Server, pollId: string, duration: number) => {
       }
     }
   }, 1000);
+
+  // Server time sync - every 5 seconds for drift correction
+  const syncTimer = setInterval(async () => {
+    try {
+      const timerState = await timerService.getTimerState(pollId);
+      
+      // Broadcast server-authoritative time to all clients
+      io.emit('timer:sync', timerState);
+    } catch (error) {
+      logger.error('Error syncing timer:', error);
+    }
+  }, 5000);
   
-  activeTimers.set(pollId, timer);
+  activeTimers.set(pollId, { interval: timer, syncInterval: syncTimer });
 };
 
 export const clearAllTimers = () => {
-  activeTimers.forEach((timer) => clearInterval(timer));
+  activeTimers.forEach(({ interval, syncInterval }) => {
+    clearInterval(interval);
+    clearInterval(syncInterval);
+  });
   activeTimers.clear();
 };
