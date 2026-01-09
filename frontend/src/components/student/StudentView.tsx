@@ -40,6 +40,24 @@ export const StudentView: React.FC = () => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
 
+  // Check for recovered vote status on poll change
+  useEffect(() => {
+    if (currentPoll) {
+      const savedVoted = sessionStorage.getItem('hasVoted_' + currentPoll._id);
+      const savedOption = sessionStorage.getItem(
+        'votedOption_' + currentPoll._id
+      );
+      if (savedVoted === 'true') {
+        setHasVoted(true);
+        if (savedOption) {
+          setSelectedOption(savedOption);
+        }
+        console.log('[StudentView] Restored vote status from recovery');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPoll?._id]);
+
   useEffect(() => {
     if (isAuthenticated && currentPoll) {
       emit('join:student', {
@@ -75,6 +93,9 @@ export const StudentView: React.FC = () => {
       });
 
       setHasVoted(true);
+      // Persist vote status for recovery
+      sessionStorage.setItem('hasVoted_' + currentPoll._id, 'true');
+      sessionStorage.setItem('votedOption_' + currentPoll._id, optionId);
       toast.success('Vote submitted!');
     } catch (error: any) {
       setSelectedOption(null);

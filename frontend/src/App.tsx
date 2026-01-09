@@ -3,7 +3,7 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Navigate,
+  useLocation,
 } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
@@ -13,32 +13,68 @@ import { StudentView } from './components/student/StudentView';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { PollHistory } from './components/teacher/PollHistory';
 import { useSocket } from './hooks/useSocket';
-import { useAuth } from './contexts/AuthContext';
 import { usePoll } from './contexts/PollContext';
 import './styles/index.css';
 
 /**
  * StateRecoveryComponent wraps app content to handle state recovery on mount
+ * Handles both teacher and student state recovery on page refresh/reconnect
  */
 function StateRecoveryWrapper({ children }: { children: React.ReactNode }) {
   const { socket } = useSocket();
-  const { studentSessionId } = useAuth();
+  const { setRecoveredState, syncTimer } = usePoll();
+  const location = useLocation();
 
   useEffect(() => {
     if (!socket) return;
 
-    // Request state recovery on component mount
-    const recoverState = () => {
-      const sessionId = sessionStorage.getItem('studentSessionId');
+    // Determine user role based on current route
+    const isTeacherRoute = location.pathname.startsWith('/teacher');
+    const isStudentRoute = location.pathname === '/student';
 
-      if (sessionId) {
+    const recoverState = () => {
+      // Teacher state recovery
+      if (isTeacherRoute) {
+        console.log('[StateRecovery] Requesting teacher state recovery...');
+        socket.emit('state:request', { role: 'teacher' }, (state: any) => {
+          if (state && !state.error && state.poll) {
+            console.log('[StateRecovery] Teacher state recovered:', state);
+            setRecoveredState({
+              poll: state.poll,
+              remainingTime: state.remainingTime,
+              results: state.votes?.results || [],
+              detailedVotes: state.votes?.detailedVotes || [],
+              totalVotes: state.votes?.totalVotes || 0,
+            });
+          }
+        });
+        return;
+      }
+
+      // Student state recovery
+      const sessionId = sessionStorage.getItem('studentSessionId');
+      if (isStudentRoute && sessionId) {
+        console.log('[StateRecovery] Requesting student state recovery...');
         socket.emit(
           'state:request',
           { role: 'student', sessionId },
           (state: any) => {
-            if (state && !state.error) {
-              console.log('[StateRecovery] State recovered:', state);
-              // State will be handled by PollContext and AuthContext listeners
+            if (state && !state.error && state.poll) {
+              console.log('[StateRecovery] Student state recovered:', state);
+              setRecoveredState({
+                poll: state.poll,
+                remainingTime: state.remainingTime,
+              });
+              // Store vote status in sessionStorage for StudentView to pick up
+              if (state.vote?.hasVoted) {
+                sessionStorage.setItem('hasVoted_' + state.poll._id, 'true');
+                if (state.vote?.votedOptionId) {
+                  sessionStorage.setItem(
+                    'votedOption_' + state.poll._id,
+                    state.vote.votedOptionId
+                  );
+                }
+              }
             }
           }
         );
@@ -54,7 +90,7 @@ function StateRecoveryWrapper({ children }: { children: React.ReactNode }) {
     return () => {
       socket.off('connect', recoverState);
     };
-  }, [socket]);
+  }, [socket, location.pathname, setRecoveredState, syncTimer]);
 
   return <>{children}</>;
 }

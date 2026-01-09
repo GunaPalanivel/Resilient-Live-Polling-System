@@ -13,6 +13,18 @@ interface PollContextType {
   createPoll: (question: string, options: string[], duration: number) => void;
   endPoll: () => void;
   refreshPoll: () => void;
+  // State recovery methods
+  setRecoveredState: (state: RecoveredState) => void;
+  syncTimer: (remaining: number) => void;
+}
+
+// State recovery type for both teacher and student
+interface RecoveredState {
+  poll: Poll | null;
+  remainingTime: number;
+  results?: VoteResult[];
+  detailedVotes?: DetailedVote[];
+  totalVotes?: number;
 }
 
 const PollContext = createContext<PollContextType | undefined>(undefined);
@@ -130,6 +142,24 @@ export const PollProvider: React.FC<{ children: React.ReactNode }> = ({
     // Implemented via API call if needed
   };
 
+  // Set recovered state from StateRecoveryWrapper
+  const setRecoveredState = (state: RecoveredState) => {
+    console.log('[PollContext] Setting recovered state:', state);
+    if (state.poll) {
+      setCurrentPoll(state.poll);
+      setRemainingSeconds(state.remainingTime);
+      if (state.results) setResults(state.results);
+      if (state.detailedVotes) setDetailedVotes(state.detailedVotes);
+      if (state.totalVotes !== undefined) setTotalVotes(state.totalVotes);
+    }
+  };
+
+  // Sync timer for late-joiners
+  const syncTimer = (remaining: number) => {
+    console.log('[PollContext] Syncing timer to:', remaining);
+    setRemainingSeconds(remaining);
+  };
+
   return (
     <PollContext.Provider
       value={{
@@ -142,6 +172,8 @@ export const PollProvider: React.FC<{ children: React.ReactNode }> = ({
         createPoll,
         endPoll,
         refreshPoll,
+        setRecoveredState,
+        syncTimer,
       }}
     >
       {children}
