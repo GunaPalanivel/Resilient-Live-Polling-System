@@ -9,7 +9,7 @@ export const StudentView: React.FC = () => {
   const { studentName, studentSessionId, isAuthenticated, login } = useAuth();
   const { currentPoll, results, totalVotes, remainingSeconds } = usePoll();
   const { emit } = useSocket();
-  
+
   const [name, setName] = useState('');
   const [hasVoted, setHasVoted] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -38,26 +38,27 @@ export const StudentView: React.FC = () => {
     // Optimistic UI update - show selected immediately
     setSelectedOption(optionId);
     const previousVotedState = hasVoted;
-    
+
     try {
       await VoteAPI.submitVote(currentPoll._id, optionId, studentName!);
-      
+
       emit('vote:submit', {
         pollId: currentPoll._id,
         optionId,
         studentSessionId,
         studentName,
       });
-      
+
       setHasVoted(true);
       toast.success('Vote submitted!');
     } catch (error: any) {
       // Revert optimistic UI on error
       setSelectedOption(null);
       setHasVoted(previousVotedState);
-      
-      const errorMessage = error.response?.data?.error || 'Failed to submit vote';
-      
+
+      const errorMessage =
+        error.response?.data?.error || 'Failed to submit vote';
+
       // Show specific error for duplicate votes
       if (error.response?.status === 409) {
         toast.error('Vote already submitted!');
@@ -108,7 +109,8 @@ export const StudentView: React.FC = () => {
         <div className="card max-w-md w-full text-center">
           <h2 className="text-2xl font-bold mb-4">Waiting for Poll</h2>
           <p className="text-text-secondary">
-            No active poll at the moment. Please wait for the teacher to start a poll.
+            No active poll at the moment. Please wait for the teacher to start a
+            poll.
           </p>
         </div>
       </div>
@@ -121,21 +123,26 @@ export const StudentView: React.FC = () => {
         <div className="max-w-4xl mx-auto pt-8">
           <div className="card">
             <h2 className="text-2xl font-bold mb-4">{currentPoll.question}</h2>
-            
+
             {currentPoll.status === 'active' && (
               <p className="text-text-secondary mb-6">
                 Thank you for voting! Results will be shown when the poll ends.
               </p>
             )}
-            
+
             <div className="space-y-3">
               {results.map((result) => (
-                <div key={result.optionId} className="bg-background-secondary rounded-lg p-4">
+                <div
+                  key={result.optionId}
+                  className="bg-background-secondary rounded-lg p-4"
+                >
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-medium flex items-center gap-2">
                       {result.optionText}
                       {selectedOption === result.optionId && (
-                        <span className="text-primary text-sm">(Your vote)</span>
+                        <span className="text-primary text-sm">
+                          (Your vote)
+                        </span>
                       )}
                     </span>
                     <span className="text-text-secondary">
@@ -151,7 +158,7 @@ export const StudentView: React.FC = () => {
                 </div>
               ))}
             </div>
-            
+
             <div className="mt-6 text-center text-text-secondary">
               Total votes: {totalVotes}
             </div>

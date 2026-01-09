@@ -10,7 +10,7 @@ const router = Router();
  */
 router.get('/current', async (req, res) => {
   try {
-    const role = req.query.role as string || 'student';
+    const role = (req.query.role as string) || 'student';
     const sessionId = req.query.sessionId as string;
 
     if (role === 'teacher') {
@@ -68,7 +68,7 @@ router.post('/restore', async (req, res) => {
     }
 
     const session = await stateRecoveryService.restoreSession(sessionId);
-    
+
     if (!session) {
       return res.status(404).json({
         success: false,

@@ -1,6 +1,7 @@
 import { VoteModel } from '../models/Vote';
 import { PollModel } from '../models/Poll';
 import { Vote, VoteResult, DetailedVote } from '../types';
+import { logger } from '../utils/logger';
 
 export class VoteService {
   async submitVote(
@@ -12,39 +13,65 @@ export class VoteService {
     // Check if poll exists and is active
     const poll = await PollModel.findById(pollId);
     if (!poll) {
-      throw new Error('POLL_NOT_FOUND');
+      const error = new Error('POLL_NOT_FOUND');
+      (error as any).statusCode = 400;
+      throw error;
     }
 
     if (poll.status !== 'active') {
-      throw new Error('POLL_NOT_ACTIVE');
+      const error = new Error('POLL_NOT_ACTIVE');
+      (error as any).statusCode = 400;
+      throw error;
     }
 
     // Verify option exists
     const option = poll.options.find((opt) => opt.id === optionId);
     if (!option) {
-      throw new Error('INVALID_OPTION');
+      const error = new Error('INVALID_OPTION');
+      (error as any).statusCode = 400;
+      throw error;
     }
 
-    // Check for duplicate vote (race condition protection)
-    const existingVote = await VoteModel.findOne({
-      pollId,
-      studentSessionId,
-    });
+    // Atomic vote submission with race condition protection
+    // If vote already exists (duplicate key), this will throw MongoServerError with code 11000
+    try {
+      const vote = new VoteModel({
+        pollId,
+        optionId,
+        studentSessionId,
+        studentName,
+        votedAt: new Date(),
+      });
 
-    if (existingVote) {
-      throw new Error('DUPLICATE_VOTE');
+      await vote.save();
+
+      // Atomically increment vote count in poll
+      await PollModel.updateOne(
+        { _id: pollId, 'options.id': optionId },
+        {
+          $inc: {
+            'options.$.voteCount': 1,
+            totalVotes: 1,
+          },
+        }
+      );
+
+      logger.info(`Vote submitted: ${vote._id} - student: ${studentName}`);
+      return vote.toObject();
+    } catch (error: any) {
+      // Handle duplicate key error (race condition)
+      if (error.code === 11000) {
+        const duplicateError = new Error('DUPLICATE_VOTE');
+        (duplicateError as any).statusCode = 409; // Conflict
+        logger.warn(
+          `Duplicate vote attempt: ${studentSessionId} on poll ${pollId}`
+        );
+        throw duplicateError;
+      }
+
+      // Re-throw other errors
+      throw error;
     }
-
-    const vote = new VoteModel({
-      pollId,
-      optionId,
-      studentSessionId,
-      studentName,
-      votedAt: new Date(),
-    });
-
-    await vote.save();
-    return vote.toObject();
   }
 
   async getVotesForPoll(pollId: string): Promise<Vote[]> {

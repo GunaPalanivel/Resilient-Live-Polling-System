@@ -30,6 +30,14 @@ export const errorHandler = (
     });
   }
 
+  // Check for custom statusCode on error (from service layer)
+  if ((err as any).statusCode) {
+    return res.status((err as any).statusCode).json({
+      success: false,
+      error: err.message,
+    });
+  }
+
   // Handle known service errors
   if (err.message === 'ACTIVE_POLL_EXISTS') {
     return res.status(409).json({

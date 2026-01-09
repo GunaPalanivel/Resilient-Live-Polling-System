@@ -10,7 +10,7 @@ export interface TimerState {
 export class TimerService {
   async getRemainingTime(pollId: string): Promise<number> {
     const poll = await PollModel.findById(pollId);
-    
+
     if (!poll || poll.status !== 'active') {
       return 0;
     }
@@ -26,7 +26,7 @@ export class TimerService {
    */
   async getTimerState(pollId: string): Promise<TimerState> {
     const poll = await PollModel.findById(pollId);
-    
+
     if (!poll || poll.status !== 'active') {
       return {
         remaining: 0,
@@ -55,7 +55,7 @@ export class TimerService {
 
   async getExpiryTime(pollId: string): Promise<Date | null> {
     const poll = await PollModel.findById(pollId);
-    
+
     if (!poll || poll.status !== 'active') {
       return null;
     }

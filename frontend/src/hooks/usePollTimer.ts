@@ -10,7 +10,7 @@ export const usePollTimer = (
 ) => {
   const [remainingSeconds, setRemainingSeconds] = useState<number>(() => {
     if (status !== 'active') return 0;
-    
+
     const elapsed = Date.now() - new Date(startedAt).getTime();
     const remaining = initialDuration - Math.floor(elapsed / 1000);
     return Math.max(0, remaining);
@@ -44,12 +44,14 @@ export const usePollTimer = (
         setRemainingSeconds((localRemaining) => {
           // Drift correction: if drift > 2 seconds, use server value
           const drift = Math.abs(localRemaining - timerState.remaining);
-          
+
           if (drift > 2) {
-            console.log(`[Timer] Drift corrected: local=${localRemaining}, server=${timerState.remaining}`);
+            console.log(
+              `[Timer] Drift corrected: local=${localRemaining}, server=${timerState.remaining}`
+            );
             return timerState.remaining;
           }
-          
+
           // Otherwise keep local timer (smoother UX)
           return localRemaining;
         });
@@ -88,11 +90,11 @@ export const usePollTimer = (
     countdownTimerRef.current = setInterval(() => {
       setRemainingSeconds((prev) => {
         const newValue = Math.max(0, prev - 1);
-        
+
         if (newValue === 0) {
           onTimerEnd?.();
         }
-        
+
         return newValue;
       });
     }, 1000);
@@ -114,7 +116,7 @@ export const usePollTimer = (
       socket.emit('poll:sync', { pollId }, (timerState: any) => {
         if (timerState && typeof timerState.remaining === 'number') {
           const drift = Math.abs(remainingSeconds - timerState.remaining);
-          
+
           if (drift > 2) {
             setRemainingSeconds(Math.max(0, timerState.remaining));
           }

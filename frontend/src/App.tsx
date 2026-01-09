@@ -1,5 +1,10 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { PollProvider } from './contexts/PollContext';
@@ -16,16 +21,17 @@ import './styles/index.css';
 function StateRecoveryWrapper({ children }: { children: React.ReactNode }) {
   const { socket } = useSocket();
   const { studentSessionId } = useAuth();
-  
+
   useEffect(() => {
     if (!socket) return;
 
     // Request state recovery on component mount
     const recoverState = () => {
       const sessionId = sessionStorage.getItem('studentSessionId');
-      
+
       if (sessionId) {
-        socket.emit('state:request', 
+        socket.emit(
+          'state:request',
           { role: 'student', sessionId },
           (state: any) => {
             if (state && !state.error) {
@@ -62,16 +68,21 @@ function AppContent() {
                 <Route path="/teacher" element={<TeacherDashboard />} />
                 <Route path="/student" element={<StudentView />} />
                 <Route path="/" element={<Navigate to="/student" replace />} />
-                <Route path="/removed" element={
-                  <div className="min-h-screen bg-background flex items-center justify-center">
-                    <div className="card max-w-md text-center">
-                      <h2 className="text-2xl font-bold text-error mb-4">Removed from Poll</h2>
-                      <p className="text-text-secondary">
-                        You have been removed from this poll by the teacher.
-                      </p>
+                <Route
+                  path="/removed"
+                  element={
+                    <div className="min-h-screen bg-background flex items-center justify-center">
+                      <div className="card max-w-md text-center">
+                        <h2 className="text-2xl font-bold text-error mb-4">
+                          Removed from Poll
+                        </h2>
+                        <p className="text-text-secondary">
+                          You have been removed from this poll by the teacher.
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                } />
+                  }
+                />
               </Routes>
               <Toaster
                 position="top-right"

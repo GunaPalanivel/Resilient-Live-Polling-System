@@ -46,7 +46,7 @@ export class StateRecoveryService {
   async getStudentState(sessionId: string): Promise<StudentStateSnapshot> {
     try {
       const session = await StudentSessionModel.findOne({ sessionId });
-      
+
       if (!session) {
         return {
           poll: null,
@@ -57,7 +57,7 @@ export class StateRecoveryService {
       }
 
       const poll = await PollModel.findOne({ status: 'active' });
-      
+
       if (!poll) {
         return {
           poll: null,
@@ -79,7 +79,7 @@ export class StateRecoveryService {
         poll: {
           _id: poll._id.toString(),
           question: poll.question,
-          options: poll.options.map(opt => ({
+          options: poll.options.map((opt) => ({
             id: opt.id,
             text: opt.text,
             voteCount: opt.voteCount || 0,
@@ -114,7 +114,7 @@ export class StateRecoveryService {
   async getTeacherState(): Promise<TeacherStateSnapshot> {
     try {
       const poll = await PollModel.findOne({ status: 'active' });
-      
+
       if (!poll) {
         return {
           poll: null,
@@ -132,7 +132,7 @@ export class StateRecoveryService {
         poll: {
           _id: poll._id.toString(),
           question: poll.question,
-          options: poll.options.map(opt => ({
+          options: poll.options.map((opt) => ({
             id: opt.id,
             text: opt.text,
             voteCount: opt.voteCount || 0,
@@ -144,7 +144,7 @@ export class StateRecoveryService {
         },
         remainingTime: timerState.remaining,
         totalVotes: votes.length,
-        votes: votes.map(v => ({
+        votes: votes.map((v) => ({
           optionId: v.optionId,
           studentName: v.studentName,
           submittedAt: v.submittedAt,
@@ -169,7 +169,7 @@ export class StateRecoveryService {
   async restoreSession(sessionId: string): Promise<any | null> {
     try {
       const session = await StudentSessionModel.findOne({ sessionId });
-      
+
       if (!session || session.isBlocked) {
         return null;
       }
