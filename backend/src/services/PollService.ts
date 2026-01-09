@@ -1,5 +1,4 @@
 import { PollModel } from '../models/Poll';
-import { VoteModel } from '../models/Vote';
 import { Poll, PollOption } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -30,17 +29,22 @@ export class PollService {
     });
 
     await poll.save();
-    return poll.toObject();
+    const obj = poll.toObject();
+    return { ...obj, _id: poll._id.toString() } as Poll;
   }
 
   async getCurrentPoll(): Promise<Poll | null> {
     const poll = await PollModel.findOne({ status: 'active' });
-    return poll ? poll.toObject() : null;
+    return poll
+      ? ({ ...poll.toObject(), _id: poll._id.toString() } as Poll)
+      : null;
   }
 
   async getPollById(pollId: string): Promise<Poll | null> {
     const poll = await PollModel.findById(pollId);
-    return poll ? poll.toObject() : null;
+    return poll
+      ? ({ ...poll.toObject(), _id: poll._id.toString() } as Poll)
+      : null;
   }
 
   async endPoll(pollId: string): Promise<Poll> {
@@ -58,7 +62,7 @@ export class PollService {
     poll.endedAt = new Date();
     await poll.save();
 
-    return poll.toObject();
+    return { ...poll.toObject(), _id: poll._id.toString() } as Poll;
   }
 
   async expirePoll(pollId: string): Promise<Poll> {
@@ -76,7 +80,7 @@ export class PollService {
     poll.endedAt = new Date();
     await poll.save();
 
-    return poll.toObject();
+    return { ...poll.toObject(), _id: poll._id.toString() } as Poll;
   }
 
   async getPollHistory(): Promise<Poll[]> {
@@ -84,7 +88,9 @@ export class PollService {
       .sort({ createdAt: -1 })
       .limit(50);
 
-    return polls.map((poll) => poll.toObject());
+    return polls.map(
+      (poll) => ({ ...poll.toObject(), _id: poll._id.toString() }) as Poll
+    );
   }
 
   async checkAndExpirePolls(): Promise<void> {

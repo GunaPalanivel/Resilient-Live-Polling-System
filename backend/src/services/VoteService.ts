@@ -35,6 +35,20 @@ export class VoteService {
     // Atomic vote submission with race condition protection
     // If vote already exists (duplicate key), this will throw MongoServerError with code 11000
     try {
+      // Fast path to reject repeat votes before attempting insert
+      const existingVote = await VoteModel.findOne({
+        pollId,
+        studentSessionId,
+      });
+      if (existingVote) {
+        const duplicateError = new Error('DUPLICATE_VOTE');
+        (duplicateError as any).statusCode = 409;
+        logger.warn(
+          `Duplicate vote attempt: ${studentSessionId} on poll ${pollId}`
+        );
+        throw duplicateError;
+      }
+
       const vote = new VoteModel({
         pollId,
         optionId,
@@ -57,7 +71,12 @@ export class VoteService {
       );
 
       logger.info(`Vote submitted: ${vote._id} - student: ${studentName}`);
-      return vote.toObject();
+      const voteObj = vote.toObject();
+      return {
+        ...voteObj,
+        _id: vote._id.toString(),
+        pollId: vote.pollId.toString(),
+      } as Vote;
     } catch (error: any) {
       // Handle duplicate key error (race condition)
       if (error.code === 11000) {
@@ -76,7 +95,14 @@ export class VoteService {
 
   async getVotesForPoll(pollId: string): Promise<Vote[]> {
     const votes = await VoteModel.find({ pollId }).sort({ votedAt: 1 });
-    return votes.map((vote) => vote.toObject());
+    return votes.map(
+      (vote) =>
+        ({
+          ...vote.toObject(),
+          _id: vote._id.toString(),
+          pollId: vote.pollId.toString(),
+        }) as Vote
+    );
   }
 
   async hasStudentVoted(

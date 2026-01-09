@@ -34,4 +34,7 @@ const VoteSchema = new Schema<VoteDocument>(
   }
 );
 
+// Prevent duplicate votes per poll/session pair
+VoteSchema.index({ pollId: 1, studentSessionId: 1 }, { unique: true });
+
 export const VoteModel = mongoose.model<VoteDocument>('Vote', VoteSchema);

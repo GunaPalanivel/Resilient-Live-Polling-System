@@ -147,7 +147,7 @@ export class StateRecoveryService {
         votes: votes.map((v) => ({
           optionId: v.optionId,
           studentName: v.studentName,
-          submittedAt: v.submittedAt,
+          submittedAt: v.votedAt,
         })),
         serverTime: timerState.serverTime,
       };
@@ -181,8 +181,8 @@ export class StateRecoveryService {
       return {
         sessionId: session.sessionId,
         studentName: session.studentName,
-        joinedAt: session.joinedAt,
-        isOnline: session.isOnline,
+        joinedAt: session.createdAt,
+        isOnline: session.isActive,
       };
     } catch (error) {
       logger.error('Error restoring session:', error);

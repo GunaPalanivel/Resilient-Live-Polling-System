@@ -17,7 +17,8 @@ export class StudentService {
       session.lastHeartbeat = new Date();
       session.isActive = true;
       await session.save();
-      return session.toObject();
+      const obj = session.toObject();
+      return { ...obj, _id: session._id.toString() } as StudentSession;
     }
 
     // Create new session
@@ -31,12 +32,15 @@ export class StudentService {
     });
 
     await session.save();
-    return session.toObject();
+    const obj = session.toObject();
+    return { ...obj, _id: session._id.toString() } as StudentSession;
   }
 
   async getSession(sessionId: string): Promise<StudentSession | null> {
     const session = await StudentSessionModel.findOne({ sessionId });
-    return session ? session.toObject() : null;
+    if (!session) return null;
+    const obj = session.toObject();
+    return { ...obj, _id: session._id.toString() } as StudentSession;
   }
 
   async updateHeartbeat(sessionId: string): Promise<void> {
@@ -53,7 +57,10 @@ export class StudentService {
       isBlocked: false,
     }).sort({ createdAt: 1 });
 
-    return sessions.map((session) => session.toObject());
+    return sessions.map((session) => {
+      const obj = session.toObject();
+      return { ...obj, _id: session._id.toString() } as StudentSession;
+    });
   }
 
   async removeStudent(sessionId: string): Promise<void> {

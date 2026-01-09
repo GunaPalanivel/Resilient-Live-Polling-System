@@ -98,14 +98,16 @@ export const TeacherDashboard: React.FC = () => {
       return;
     }
 
-    const validOptions = options.filter((opt) => opt.trim());
+    const validOptions = options
+      .filter((opt) => opt.trim())
+      .map((opt) => opt.trim());
     if (validOptions.length < 2) {
       toast.error('Please provide at least 2 options');
       return;
     }
 
     console.log('🎯 Creating poll with duration:', duration, 'seconds');
-    createPoll(question, validOptions, duration);
+    createPoll(question.trim(), validOptions, duration);
 
     setQuestion('');
     setOptions(['', '']);

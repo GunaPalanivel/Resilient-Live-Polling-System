@@ -7,6 +7,7 @@ const PollOptionSchema = new Schema<PollOption>(
   {
     id: { type: String, required: true },
     text: { type: String, required: true },
+    voteCount: { type: Number, default: 0 },
   },
   { _id: false }
 );
@@ -49,6 +50,10 @@ const PollSchema = new Schema<PollDocument>(
     },
     endedAt: {
       type: Date,
+    },
+    totalVotes: {
+      type: Number,
+      default: 0,
     },
   },
   {
