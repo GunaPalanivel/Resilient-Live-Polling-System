@@ -23,7 +23,7 @@ export const errorHandler = (
       statusCode: err.statusCode,
       path: req.path,
     });
-    
+
     return res.status(err.statusCode).json({
       success: false,
       error: err.message,
@@ -83,7 +83,7 @@ export const errorHandler = (
 
   // Log unexpected errors
   logger.error('Unexpected error:', err);
-  
+
   return res.status(500).json({
     success: false,
     error: 'An unexpected error occurred',
