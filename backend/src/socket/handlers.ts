@@ -142,15 +142,18 @@ export const setupSocketHandlers = (io: Server) => {
       }
     });
 
-    // Vote submission
+    // Vote submission (supports ack to avoid duplicate HTTP + socket calls)
     socket.on(
       'vote:submit',
-      async (data: {
-        pollId: string;
-        optionId: string;
-        studentSessionId: string;
-        studentName: string;
-      }) => {
+      async (
+        data: {
+          pollId: string;
+          optionId: string;
+          studentSessionId: string;
+          studentName: string;
+        },
+        callback?: (error: Error | null) => void
+      ) => {
         try {
           const vote = await voteService.submitVote(
             data.pollId,
@@ -177,12 +180,14 @@ export const setupSocketHandlers = (io: Server) => {
             totalVotes,
           });
 
+          callback?.(null);
           logger.info(`Vote submitted: ${vote._id}`);
         } catch (error) {
           logger.error('Error submitting vote:', error);
+          const err = error instanceof Error ? error : new Error(String(error));
+          callback?.(err);
           socket.emit('error', {
-            message:
-              error instanceof Error ? error.message : 'Failed to submit vote',
+            message: err.message,
           });
         }
       }

@@ -119,57 +119,74 @@ export const PollHistory: React.FC = () => {
                   </h3>
                 </div>
 
-                {/* Results - Note: Real results would come from API */}
+                {/* Results with actual vote counts */}
                 <div className="space-y-4">
-                  {poll.options.map((option, index) => (
-                    <div
-                      key={option.id}
-                      className="border rounded-xl p-4"
-                      style={{
-                        borderColor: 'var(--color-border-primary)',
-                      }}
-                    >
-                      <div className="flex justify-between items-center mb-3">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold"
-                            style={{ backgroundColor: 'var(--color-primary)' }}
-                          >
-                            {index + 1}
-                          </div>
-                          <span
-                            className="font-medium text-lg"
-                            style={{ color: 'var(--color-text-primary)' }}
-                          >
-                            {option.text}
-                          </span>
-                        </div>
-                        <span
-                          className="text-lg font-semibold"
-                          style={{ color: 'var(--color-text-primary)' }}
-                        >
-                          0%
-                        </span>
-                      </div>
+                  {poll.options.map((option, index) => {
+                    const totalVotes = poll.totalVotes ?? 0;
+                    const optionVotes = option.voteCount ?? 0;
+                    const percentage =
+                      totalVotes > 0
+                        ? Math.round((optionVotes / totalVotes) * 100)
+                        : 0;
 
-                      {/* Progress Bar */}
+                    return (
                       <div
-                        className="w-full h-3 rounded-full overflow-hidden"
+                        key={option.id}
+                        className="border rounded-xl p-4"
                         style={{
-                          backgroundColor: 'var(--color-background-tertiary)',
+                          borderColor: 'var(--color-border-primary)',
                         }}
                       >
+                        <div className="flex justify-between items-center mb-3">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold"
+                              style={{ backgroundColor: 'var(--color-primary)' }}
+                            >
+                              {index + 1}
+                            </div>
+                            <span
+                              className="font-medium text-lg"
+                              style={{ color: 'var(--color-text-primary)' }}
+                            >
+                              {option.text}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span
+                              className="text-lg font-semibold block"
+                              style={{ color: 'var(--color-text-primary)' }}
+                            >
+                              {percentage}%
+                            </span>
+                            <span
+                              className="text-sm"
+                              style={{ color: 'var(--color-text-secondary)' }}
+                            >
+                              {optionVotes} votes
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Progress Bar */}
                         <div
-                          className="h-full rounded-full transition-all duration-500"
+                          className="w-full h-3 rounded-full overflow-hidden"
                           style={{
-                            width: '0%',
-                            background:
-                              'linear-gradient(90deg, #7765DA 0%, #5767D0 100%)',
+                            backgroundColor: 'var(--color-background-tertiary)',
                           }}
-                        />
+                        >
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${percentage}%`,
+                              background:
+                                'linear-gradient(90deg, #7765DA 0%, #5767D0 100%)',
+                            }}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}

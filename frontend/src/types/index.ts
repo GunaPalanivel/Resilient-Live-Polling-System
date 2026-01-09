@@ -3,6 +3,7 @@ export type PollStatus = 'active' | 'ended' | 'expired';
 export interface PollOption {
   id: string;
   text: string;
+  voteCount?: number;
 }
 
 export interface Poll {
@@ -13,6 +14,7 @@ export interface Poll {
   status: PollStatus;
   startedAt: string;
   endedAt?: string;
+  totalVotes?: number;
   createdAt: string;
   updatedAt: string;
 }

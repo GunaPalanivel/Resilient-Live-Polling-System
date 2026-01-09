@@ -41,7 +41,7 @@ export class VoteService {
         studentSessionId,
       });
       if (existingVote) {
-        const duplicateError = new Error('DUPLICATE_VOTE');
+        const duplicateError = new Error('Already voted');
         (duplicateError as any).statusCode = 409;
         logger.warn(
           `Duplicate vote attempt: ${studentSessionId} on poll ${pollId}`
@@ -80,7 +80,7 @@ export class VoteService {
     } catch (error: any) {
       // Handle duplicate key error (race condition)
       if (error.code === 11000) {
-        const duplicateError = new Error('DUPLICATE_VOTE');
+        const duplicateError = new Error('Already voted');
         (duplicateError as any).statusCode = 409; // Conflict
         logger.warn(
           `Duplicate vote attempt: ${studentSessionId} on poll ${pollId}`

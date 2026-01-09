@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePoll } from '../../contexts/PollContext';
 import { useSocket } from '../../hooks/useSocket';
-import { VoteAPI } from '../../services/pollService';
 import { BrandBadge } from '../ui/BrandBadge.tsx';
 import { ChatButton, ChatPopup } from '../ui/Chat.tsx';
 import toast from 'react-hot-toast';
@@ -78,42 +77,41 @@ export const StudentView: React.FC = () => {
     login(name.trim());
   };
 
-  const handleVote = async (optionId: string) => {
+  const handleVote = (optionId: string) => {
     if (hasVoted || !currentPoll) return;
 
-    setSelectedOption(optionId);
     const previousVotedState = hasVoted;
+    setSelectedOption(optionId);
+    setHasVoted(true);
 
-    try {
-      await VoteAPI.submitVote(currentPoll._id, optionId, studentName!);
-
-      emit('vote:submit', {
+    emit(
+      'vote:submit',
+      {
         pollId: currentPoll._id,
         optionId,
         studentSessionId,
         studentName,
-      });
+      },
+      (error: Error | null) => {
+        if (error) {
+          setSelectedOption(null);
+          setHasVoted(previousVotedState);
 
-      setHasVoted(true);
-      // Persist vote status for recovery
-      sessionStorage.setItem('hasVoted_' + currentPoll._id, 'true');
-      sessionStorage.setItem('votedOption_' + currentPoll._id, optionId);
-      toast.success('Vote submitted!');
-    } catch (error: unknown) {
-      setSelectedOption(null);
-      setHasVoted(previousVotedState);
+          const errorMsg = error.message || String(error);
+          if (errorMsg === 'Already voted' || errorMsg.includes('already')) {
+            toast.error('Vote already submitted!');
+          } else {
+            toast.error(errorMsg || 'Failed to submit vote');
+          }
+          return;
+        }
 
-      const axiosError = error as {
-        response?: { data?: { error?: string }; status?: number };
-      };
-      const errorMessage =
-        axiosError.response?.data?.error || 'Failed to submit vote';
-      if (axiosError.response?.status === 409) {
-        toast.error('Vote already submitted!');
-      } else {
-        toast.error(errorMessage);
+        // Persist vote status for recovery
+        sessionStorage.setItem('hasVoted_' + currentPoll._id, 'true');
+        sessionStorage.setItem('votedOption_' + currentPoll._id, optionId);
+        toast.success('Vote submitted!');
       }
-    }
+    );
   };
 
   const formatTime = (seconds: number) => {
